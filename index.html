@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado Mestre das Regras IBJJF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Roboto', sans-serif;
+            position: relative;
+            background-color: #020617;
+            overflow-x: hidden;
+        }
+        body::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+        body::before,
+        body::after {
+            content: '';
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 9999px;
+            filter: blur(140px);
+            opacity: 0.35;
+            z-index: 0;
+        }
+        body::before { background: #0ea5e9; top: -160px; left: -120px; }
+        body::after { background: #7c3aed; bottom: -160px; right: -80px; }
+
+        .app-shell {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1120px;
+            min-height: 700px;
+        }
+
+        .mode-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .mode-card:hover { transform: translateY(-4px); box-shadow: 0 18px 35px rgba(15, 23, 42, 0.18); }
+
+        .option-button { transition: all 0.2s ease; }
+        .option-button:hover { border-color: #818cf8; background-color: rgba(129, 140, 248, 0.08); }
+        .option-button:disabled { cursor: not-allowed; }
+
+        .tag-pill {
+            border-radius: 9999px;
+            padding: 0.2rem 0.85rem;
+            border: 1px solid rgba(79, 70, 229, 0.25);
+            background-color: rgba(79, 70, 229, 0.1);
+            color: #4338ca;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .slide-up { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .correct-anim { background-color: #d1fae5 !important; border-color: #10b981 !important; }
+        .wrong-anim { background-color: #fee2e2 !important; border-color: #ef4444 !important; }
+    </style>
+</head>
+<body class="min-h-screen w-full flex justify-center items-start sm:items-center p-4 sm:p-6 overflow-y-auto overflow-x-hidden">
+
+    <!-- Container Principal -->
+    <div class="app-shell bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl ring-1 ring-white/40 w-full flex flex-col relative">
+        
+        <!-- Header -->
+        <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold"><i class="fas fa-book-open mr-2"></i>Mestre das Regras IBJJF</h1>
+                <p class="text-blue-200 text-sm">Estude as principais regras e exceções oficiais</p>
+            </div>
+            <div id="streak-display" class="hidden bg-blue-800 px-3 py-1 rounded-full text-xs font-bold">
+                🔥 Sequência: <span id="streak-count">0</span>
+            </div>
+        </div>
+
+        <!-- Tela Inicial (Menu) -->
+        <div id="start-screen" class="flex-1 w-full fade-in">
+            <div class="w-full max-w-3xl mx-auto p-6 sm:p-8 space-y-8 flex flex-col items-center text-center">
+                <div class="space-y-3">
+                    <span class="text-xs font-semibold uppercase tracking-[0.4em] text-blue-300">Simulados IBJJF</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Domine as regras em poucas etapas</h2>
+                    <p class="text-slate-500 text-sm">Banco com <span id="total-questions-count" class="font-bold text-blue-600">0</span> perguntas e modos focados para treinar arbitragem.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 w-full text-left">
+                    <div class="rounded-2xl border border-blue-100 bg-white/90 p-5 shadow-sm">
+                        <p class="text-[11px] uppercase tracking-[0.3em] text-blue-300 mb-1">Simulados</p>
+                        <p id="stats-total-games" class="text-3xl font-black text-blue-700">0</p>
+                        <span class="text-xs text-slate-400">Concluídos</span>
+                    </div>
+                    <div class="rounded-2xl border border-indigo-100 bg-white/90 p-5 shadow-sm">
+                        <p class="text-[11px] uppercase tracking-[0.3em] text-indigo-300 mb-1">Precisão Geral</p>
+                        <p id="stats-accuracy" class="text-3xl font-black text-indigo-700">0%</p>
+                        <span class="text-xs text-slate-400">Taxa acumulada</span>
+                    </div>
+                    <div class="rounded-2xl border border-emerald-100 bg-white/90 p-5 shadow-sm">
+                        <p class="text-[11px] uppercase tracking-[0.3em] text-emerald-300 mb-1">Perguntas</p>
+                        <p id="stats-total-answered" class="text-3xl font-black text-emerald-700">0</p>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-xs text-slate-400">Respondidas</span>
+                            <button onclick="resetHistory()" class="text-[11px] font-semibold text-red-500 hover:text-red-600">Zerar</button>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-purple-100 bg-white/90 p-5 shadow-sm">
+                        <p class="text-[11px] uppercase tracking-[0.3em] text-purple-300 mb-1">Último Resultado</p>
+                        <p id="stats-last-score" class="text-3xl font-black text-purple-700">--</p>
+                        <span id="stats-last-summary" class="text-xs text-slate-400">Complete um simulado para ver detalhes.</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left">
+                    <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Panorama</p>
+                            <span class="text-[11px] text-slate-400">Atualizado automaticamente</span>
+                        </div>
+                        <p id="stats-health-comment" class="text-sm text-slate-600 mb-4">Resolva seu primeiro simulado para desbloquear insights personalizados.</p>
+                        <ul class="space-y-2 text-sm text-slate-600">
+                            <li class="flex items-center justify-between">
+                                <span>Acertos acumulados</span>
+                                <span id="stats-total-correct" class="font-semibold text-slate-900">0</span>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span>Média de questões/treino</span>
+                                <span id="stats-average-count" class="font-semibold text-slate-900">0</span>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span>Atualizado em</span>
+                                <span id="stats-last-date" class="font-semibold text-slate-900">—</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5 shadow-inner text-left text-sm text-slate-600">
+                        <h4 class="font-semibold text-slate-800 mb-2">Como aproveitar melhor</h4>
+                        <p class="mb-3">Intercale um modo geral com a opção "Corrigir Erros" para reforçar rapidamente os temas que mais pesam no seu desempenho.</p>
+                        <ul class="text-xs space-y-1 text-slate-500">
+                            <li>• Faça simulados menores se precisar revisar rapidamente.</li>
+                            <li>• Registre o modo usado para comparar sua evolução.</li>
+                            <li>• Use o painel de fraquezas para planejar os próximos treinos.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="w-full rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Fraquezas principais</p>
+                            <p class="text-sm text-slate-500">Temas com mais erros. Mire neles na próxima sessão.</p>
+                        </div>
+                        <span id="stats-total-errors" class="text-xs font-semibold text-slate-400">Nenhum erro registrado ainda.</span>
+                    </div>
+                    <ul id="top-tags-list" class="space-y-4">
+                        <li class="text-sm text-slate-400">Sem dados suficientes ainda.</li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <button onclick="startQuiz('random')" class="mode-card p-5 bg-white border border-slate-100 rounded-2xl text-left shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-[0.4em] text-slate-400">Padrão</p>
+                                <h3 class="text-lg font-bold text-slate-900">Simulado Geral</h3>
+                                <p class="text-xs text-slate-500 mt-1">Equilíbrio entre níveis.</p>
+                            </div>
+                            <span class="p-3 rounded-full bg-blue-50 text-blue-600"><i class="fas fa-random"></i></span>
+                        </div>
+                    </button>
+                    <button onclick="startQuiz('weakness')" class="mode-card p-5 bg-white border border-slate-100 rounded-2xl text-left shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-[0.4em] text-red-300">Foco</p>
+                                <h3 class="text-lg font-bold text-slate-900">Corrigir Erros</h3>
+                                <p class="text-xs text-slate-500 mt-1">Baseado nas suas falhas.</p>
+                            </div>
+                            <span class="p-3 rounded-full bg-red-50 text-red-600"><i class="fas fa-notes-medical"></i></span>
+                        </div>
+                    </button>
+                    <button onclick="startQuiz('hard')" class="mode-card p-5 bg-white border border-slate-100 rounded-2xl text-left shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-[0.4em] text-purple-300">Desafio</p>
+                                <h3 class="text-lg font-bold text-slate-900">Faixa Preta</h3>
+                                <p class="text-xs text-slate-500 mt-1">Questões avançadas.</p>
+                            </div>
+                            <span class="p-3 rounded-full bg-purple-50 text-purple-600"><i class="fas fa-medal"></i></span>
+                        </div>
+                    </button>
+                    <button onclick="startQuiz('easy')" class="mode-card p-5 bg-white border border-slate-100 rounded-2xl text-left shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-[0.4em] text-green-300">Base</p>
+                                <h3 class="text-lg font-bold text-slate-900">Faixa Branca</h3>
+                                <p class="text-xs text-slate-500 mt-1">Conceitos essenciais.</p>
+                            </div>
+                            <span class="p-3 rounded-full bg-green-50 text-green-600"><i class="fas fa-seedling"></i></span>
+                        </div>
+                    </button>
+                </div>
+
+                <div id="weakness-alert" class="hidden text-red-500 text-sm bg-red-50 px-4 py-3 rounded-2xl border border-red-100 w-full">
+                    <i class="fas fa-exclamation-circle mr-2"></i> Histórico insuficiente para esse modo.
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela do Quiz -->
+        <div id="quiz-screen" class="hidden flex-1 w-full overflow-y-auto p-6">
+            <div class="w-full max-w-3xl mx-auto flex flex-col">
+                <!-- Barra de Progresso -->
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-bold text-gray-400">Questão <span id="current-q-num">1</span>/<span id="total-q-num">10</span></span>
+                    <div class="flex items-center gap-3">
+                        <span id="difficulty-badge" class="px-2 py-1 rounded text-xs font-bold bg-gray-200 text-gray-600 uppercase">Difícil</span>
+                        <button onclick="abortQuiz()" class="text-xs font-semibold text-red-500 hover:text-red-600">Sair</button>
+                    </div>
+                </div>
+
+                <h2 id="question-text" class="text-xl font-bold text-gray-800 mb-4 slide-up min-h-[80px]">
+                    Carregando pergunta...
+                </h2>
+
+                <div class="flex items-center gap-3 mb-2">
+                    <button id="hint-btn" onclick="toggleHint()" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition disabled:text-gray-400 disabled:cursor-not-allowed">
+                        Ver dica
+                    </button>
+                </div>
+                <div id="hint-panel" class="hidden bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4">
+                    <p class="text-xs uppercase tracking-[0.2em] text-blue-300 mb-2">Dica rápida</p>
+                    <p id="hint-content" class="text-sm text-slate-700"></p>
+                </div>
+
+                <div id="options-container" class="grid gap-3 mb-6">
+                    <!-- Opções serão inseridas aqui via JS -->
+                </div>
+
+                <!-- Feedback (Explicação) -->
+                <div id="feedback-container" class="hidden bg-gray-50 border-l-4 p-4 rounded mb-4 slide-up">
+                    <div class="flex items-start">
+                        <div id="feedback-icon" class="text-2xl mr-3"></div>
+                        <div>
+                            <h4 id="feedback-title" class="font-bold text-gray-800"></h4>
+                            <p id="feedback-text" class="text-sm text-gray-600 mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto flex justify-end">
+                    <button id="next-btn" onclick="nextQuestion()" class="hidden px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-lg transform hover:-translate-y-1">
+                        Próxima Questão <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela de Resultados -->
+        <div id="result-screen" class="hidden flex-1 w-full overflow-y-auto p-6 text-center fade-in">
+            <div class="w-full max-w-3xl mx-auto flex flex-col items-center">
+                <div class="flex flex-col items-center gap-2 mb-4">
+                    <div id="score-circle" class="w-32 h-32 rounded-full border-8 border-blue-500 flex items-center justify-center text-4xl font-bold text-blue-600">
+                        0%
+                    </div>
+                    <h2 id="result-title" class="text-2xl font-bold">Resultado</h2>
+                    <p id="result-msg" class="text-gray-600 max-w-xl"></p>
+                </div>
+
+                <div class="w-full space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm text-left">
+                            <p class="text-xs uppercase tracking-[0.2em] text-blue-300 mb-2">Precisão Final</p>
+                            <p id="result-accuracy" class="text-2xl font-extrabold text-slate-800">0%</p>
+                            <span class="text-xs text-slate-400">Baseado nas questões respondidas</span>
+                        </div>
+                        <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm text-left">
+                            <p class="text-xs uppercase tracking-[0.2em] text-emerald-300 mb-2">Acertos</p>
+                            <p id="result-answered" class="text-2xl font-extrabold text-slate-800">0/0 acertos</p>
+                            <span class="text-xs text-slate-400">Perguntas respondidas corretamente</span>
+                        </div>
+                        <div class="rounded-2xl border border-purple-100 bg-white p-5 shadow-sm text-left">
+                            <p class="text-xs uppercase tracking-[0.2em] text-purple-300 mb-2">Modo</p>
+                            <p id="result-mode" class="text-lg font-bold text-slate-800">Simulado Geral</p>
+                            <span class="text-xs text-slate-400">Configuração atual</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-2xl text-left shadow-sm">
+                            <h4 class="font-bold text-blue-900 mb-2 flex items-center text-sm uppercase tracking-[0.2em]"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Dica de Estudo</h4>
+                            <p id="study-tip" class="text-sm text-blue-800">...</p>
+                        </div>
+                        <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left">
+                            <h4 class="text-sm uppercase tracking-[0.3em] text-slate-400 mb-3">Assuntos a Revisar</h4>
+                            <ul id="result-weakness-list" class="space-y-2 text-sm text-slate-600">
+                                <li class="text-slate-400">Sem recomendações no momento.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="review-section" class="w-full mt-6 space-y-4 hidden">
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button id="review-toggle-btn" onclick="toggleReviewPanel()" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                            Revisar erros
+                        </button>
+                        <button onclick="startCorrectionMode()" class="px-4 py-2 bg-red-500 text-white text-sm rounded font-semibold hover:bg-red-600 shadow">
+                            Corrigir erros agora
+                        </button>
+                    </div>
+                    <div id="review-panel" class="hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm text-left max-h-80 overflow-y-auto">
+                        <h4 class="text-sm uppercase tracking-[0.3em] text-slate-400 mb-3">Questões incorretas</h4>
+                        <ul id="review-list" class="space-y-4 text-sm text-slate-600"></ul>
+                    </div>
+                </div>
+
+                <p class="text-sm text-gray-400 mt-6">Como você quer o próximo simulado?</p>
+                <div class="flex gap-3 flex-wrap justify-center mt-2">
+                    <button onclick="restartQuiz('easier')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-600 text-sm">
+                        <i class="fas fa-arrow-down mr-1"></i> Mais Fácil
+                    </button>
+                    <button onclick="restartQuiz('same')" class="px-6 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 shadow-md">
+                        <i class="fas fa-redo mr-1"></i> Mesmo Nível
+                    </button>
+                    <button onclick="restartQuiz('harder')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-600 text-sm">
+                        Mais Difícil <i class="fas fa-arrow-up ml-1"></i>
+                    </button>
+                </div>
+                <button onclick="showHome()" class="mt-4 text-blue-500 text-sm hover:underline">Voltar ao Menu</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- BANCO DE DADOS (Exemplos - Expanda copiando a estrutura) ---
+        const questionsDB = [
+            // FÁCIL
+            {
+                id: 1,
+                text: "Qual a cor da punição disciplinar grave (cartão) que expulsa o atleta do evento?",
+                options: ["Amarelo", "Laranja", "Vermelho", "Preto"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["disciplinar"],
+                rationale: "O Cartão Vermelho é a punição máxima disciplinar."
+            },
+            {
+                id: 2,
+                text: "Quanto tempo o atleta tem para arrumar o kimono quando ordenado pelo árbitro?",
+                options: ["10 segundos", "20 segundos", "30 segundos", "1 minuto"],
+                correct: 1,
+                difficulty: "easy",
+                tags: ["tempo", "grave"],
+                rationale: "O atleta tem 20 segundos. Exceder este tempo gera punição (Falta Grave)."
+            },
+            {
+                id: 3,
+                text: "Qual é a consequência de fugir da área de luta para evitar uma finalização encaixada?",
+                options: ["Punição Grave", "2 Pontos para o adversário", "Desclassificação (DQ)", "Reinício no centro"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["fuga", "gravissima"],
+                rationale: "Fugir de finalização encaixada é Falta Gravíssima Técnica, gerando DQ imediato."
+            },
+            {
+                id: 4,
+                text: "É permitido morder o adversário?",
+                options: ["Sim", "Não, é Falta Grave", "Não, é Falta Disciplinar (Expulsão)", "Apenas se estiver sendo estrangulado"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["disciplinar"],
+                rationale: "Morder é falta disciplinar gravíssima."
+            },
+            {
+                id: 5,
+                text: "Um atleta Faixa Branca pode aplicar chave de pulso (Mão de Vaca)?",
+                options: ["Sim", "Não", "Apenas se o professor autorizar", "Sim, se estiver por cima"],
+                correct: 1,
+                difficulty: "easy",
+                tags: ["faixas", "restricao"],
+                rationale: "Mão de vaca é proibida na faixa branca."
+            },
+            
+            // MÉDIO
+            {
+                id: 6,
+                text: "Na Dupla Puxada, após 20 segundos de inatividade, o árbitro pune ambos. Onde a luta reinicia?",
+                options: ["No chão, mesma posição", "Em pé, no centro", "Sorteio de posição", "Quem levantou ganha vantagem"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["combatividade", "reinício"],
+                rationale: "Na dupla puxada com punição por inatividade, a luta deve ser reiniciada em pé."
+            },
+            {
+                id: 7,
+                text: "Atleta A foge da área para evitar uma raspagem (sem finalização). Qual a penalidade?",
+                options: ["DQ", "Vantagem para B", "Punição para A e 2 pontos para B", "Reinício no centro sem pontos"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["fuga", "pontuação"],
+                rationale: "Fuga de pontuação gera punição ao infrator e os pontos (2) que seriam conquistados ao adversário."
+            },
+            {
+                id: 8,
+                text: "É permitido colocar a mão dentro da manga do adversário (4 dedos)?",
+                options: ["Sim", "Não, Falta Grave", "Não, DQ", "Sim, se for pegada rápida"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["pegada", "grave"],
+                rationale: "Pegada por dentro da boca da manga ou calça é proibida e punida com Falta Grave."
+            },
+            {
+                id: 9,
+                text: "Um Faixa Roxa aplica uma chave de joelho reta (Knee Bar). Decisão?",
+                options: ["Válido", "Punição", "Desclassificação", "Vantagem"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["faixas", "gravissima"],
+                rationale: "Chave de joelho é restrita a Marrom e Preta. Na Roxa é DQ."
+            },
+            {
+                id: 10,
+                text: "O que acontece na 4ª falta grave acumulada?",
+                options: ["4 pontos para o adversário", "DQ do infrator", "Adversário vence por vantagem", "Zera o placar"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["grave", "acumulo"],
+                rationale: "A sequência é: Punição -> Vantagem -> 2 pts -> Desclassificação."
+            },
+            {
+                id: 11,
+                text: "No desempate, o atleta com 1 punição ganha ou perde do atleta com 0 punições (placar 0-0)?",
+                options: ["Ganha", "Perde", "Empata", "Decisão do juiz"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["desempate"],
+                rationale: "Punição é critério de desempate negativo. Quem tem punição perde."
+            },
+
+            // DIFÍCIL
+            {
+                id: 12,
+                text: "Faixa Preta cruza a perna (Knee Reaping) apenas para defender, sem atacar o pé. Decisão?",
+                options: ["DQ", "Punição", "Luta Segue", "Reinício"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["reaping", "preta"],
+                rationale: "Marrom e Preta têm exceção para cruzar como posicionamento/defesa."
+            },
+            {
+                id: 13,
+                text: "Na chave de pé reta, o pé cruza a linha do umbigo na Faixa Azul. Decisão?",
+                options: ["Luta Segue", "Ajuste", "Punição", "Desclassificação"],
+                correct: 3,
+                difficulty: "hard",
+                tags: ["botinha", "reaping"],
+                rationale: "Para faixas coloridas (exceto Marrom), passar do umbigo é DQ automático."
+            },
+            {
+                id: 14,
+                text: "Interrupção médica por sangramento acidental não estancado. Quem vence?",
+                options: ["O lesionado", "O adversário", "No Contest", "Quem tiver mais pontos"],
+                correct: 1,
+                difficulty: "hard",
+                tags: ["medico"],
+                rationale: "Se a luta para por lesão acidental, vence quem está apto a continuar (o adversário)."
+            },
+            {
+                id: 15,
+                text: "Chave de Calcanhar (Heel Hook) em competição com Kimono na Faixa Preta.",
+                options: ["Válido", "Punição", "DQ", "Válido se não girar"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["ilegal", "preta"],
+                rationale: "Heel Hook é sempre ilegal de Kimono na IBJJF."
+            },
+            {
+                id: 16,
+                text: "Atleta vomita no tatame.",
+                options: ["DQ Imediato", "Tempo médico", "Punição", "Limpeza e segue"],
+                correct: 0,
+                difficulty: "hard",
+                tags: ["higiene"],
+                rationale: "Fluidos corporais (exceto sangue) geram DQ imediata."
+            },
+            {
+                id: 17,
+                text: "Suplex onde o oponente cai de cabeça. Decisão?",
+                options: ["2 pontos", "DQ (Slam)", "Punição", "Vantagem"],
+                correct: 1,
+                difficulty: "hard",
+                tags: ["slam"],
+                rationale: "Queda traumática sobre a cabeça/pescoço é Slam (DQ)."
+            },
+            {
+                id: 18,
+                text: "Atleta sai da área rolando acidentalmente defendendo finalização encaixada.",
+                options: ["DQ", "2 pontos e Punição", "Reinício no centro (mesma posição)", "Reinício em pé"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["saida", "finalizacao"],
+                rationale: "Saída acidental não é fuga. Reinicia no centro com o golpe encaixado."
+            },
+            {
+                id: 19,
+                text: "Empurrar o rosto do adversário com mão aberta para evitar passagem.",
+                options: ["Permitido", "Falta Grave", "Falta Gravíssima", "Apenas verbal"],
+                correct: 1,
+                difficulty: "hard",
+                tags: ["rosto", "grave"],
+                rationale: "Mão no rosto é falta técnica grave."
+            },
+            {
+                id: 20,
+                text: "Gritar 'KIAI' (grito de força) preso em finalização.",
+                options: ["Segue", "Desistência Verbal (Fim de luta)", "Punição", "Parar e advertir"],
+                correct: 1,
+                difficulty: "hard",
+                tags: ["verbal", "finalizacao"],
+                rationale: "Qualquer grito sob ataque de finalização é interpretado como desistência."
+            },
+
+            // NOVAS QUESTÕES
+            {
+                id: 21,
+                text: "Segurar e torcer apenas um dedo do adversário para quebrar uma pegada resulta em:",
+                options: ["Jogo segue normalmente", "Advertência leve", "Falta Grave", "Desclassificação imediata"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["pegada", "grave"],
+                rationale: "Manipular dedos individualmente é falta técnica grave segundo o Artigo 6º."
+            },
+            {
+                id: 22,
+                text: "Insultar ou xingar o árbitro durante a luta gera qual sanção?",
+                options: ["Apenas advertência", "Falta Grave", "Desclassificação disciplinar imediata", "Perda de vantagem"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Agressão verbal à arbitragem é falta disciplinar gravíssima e encerra a luta."
+            },
+            {
+                id: 23,
+                text: "Ignorar a ordem 'Combate!' do árbitro para ganhar tempo caracteriza:",
+                options: ["Conduta aceitável", "Falta Grave por falta de combatividade", "Simples advertência", "Derrota por pontos"],
+                correct: 1,
+                difficulty: "easy",
+                tags: ["combatividade", "grave"],
+                rationale: "Desobedecer à chamada para reiniciar a luta é falta grave por falta de combatividade."
+            },
+            {
+                id: 24,
+                text: "Cuspir no tatame ou em outra pessoa, mesmo por frustração, resulta em:",
+                options: ["Advertência", "Falta Grave", "Desclassificação imediata", "Pausa apenas para limpeza"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["disciplinar", "higiene"],
+                rationale: "Atos anti-higiênicos intencionais são faltas disciplinares com expulsão imediata."
+            },
+            {
+                id: 25,
+                text: "Simular lesão para interromper a luta, sendo constatado pelo árbitro, leva a:",
+                options: ["Nenhuma ação", "Falta Grave por conduta antidesportiva", "Desclassificação", "Vantagem ao adversário"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["simulacao", "grave"],
+                rationale: "A simulação de lesão é falta grave técnica e gera punição progressiva."
+            },
+            {
+                id: 26,
+                text: "Empurrar o adversário para fora da área apenas para evitar ser projetado gera:",
+                options: ["Nada", "Vantagem para quem empurrou", "Falta Grave e reinício em pé", "Desclassificação para ambos"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["fuga", "grave"],
+                rationale: "Forçar a saída para evitar pontuação é falta grave com punição e reinício."
+            },
+            {
+                id: 27,
+                text: "Desamarrar propositalmente o próprio cinto repetidas vezes para parar a luta resulta em:",
+                options: ["Nenhuma consequência", "Falta Grave por falta de combatividade", "Vantagem ao adversário", "Derrota automática"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["combatividade", "cinto"],
+                rationale: "Paralisar o combate intencionalmente é falta grave de acordo com o Artigo 6º."
+            },
+            {
+                id: 28,
+                text: "Erguer o adversário preso na guarda fechada e arremessá-lo ao solo para se soltar caracteriza:",
+                options: ["Técnica válida", "Falta Grave", "Desclassificação por slam", "Reinício em pé"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["slam", "gravissima"],
+                rationale: "Slam para escapar da guarda ou de finalizações é falta gravíssima com DQ imediata."
+            },
+            {
+                id: 29,
+                text: "Aplicar o movimento kani basami (tesoura voadora) no kimono em qualquer faixa gera:",
+                options: ["2 pontos", "Falta Grave", "Desclassificação imediata", "Advertência"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["kani", "gravissima"],
+                rationale: "O kani basami é proibido e resulta em desclassificação automática." 
+            },
+            {
+                id: 30,
+                text: "O treinador invade a área de luta para contestar o árbitro e se recusa a sair. O atleta representado recebe:",
+                options: ["Advertência verbal", "Falta Grave", "Desclassificação disciplinar", "Penalidade apenas ao treinador"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["tecnico", "disciplinar"],
+                rationale: "Interferência externa é falta disciplinar, punida com desclassificação do atleta representado."
+            },
+
+            // EXPANSÃO 100+ QUESTÕES
+            {
+                id: 31,
+                text: "Atleta se recusa a cortar unhas compridas antes da luta. Qual a consequência?",
+                options: ["Advertência e segue", "Falta Gravíssima", "Luta não inicia e, se não ajustar, DQ", "2 pontos para o adversário"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["seguranca", "uniforme"],
+                rationale: "Condições de segurança e higiene são obrigatórias; recusa em ajustar gera desclassificação disciplinar."
+            },
+            {
+                id: 32,
+                text: "É permitido cobrir o corpo com óleo para dificultar pegadas?",
+                options: ["Sim, sem exageros", "Não, resultado é falta disciplinar", "Apenas em categorias absolutos", "Somente se ambos concordarem"],
+                correct: 1,
+                difficulty: "easy",
+                tags: ["higiene", "disciplinar"],
+                rationale: "Substâncias escorregadias caracterizam conduta antidesportiva disciplinar."
+            },
+            {
+                id: 33,
+                text: "Faixa branca tenta varrer com tesoura nas pernas (kani basami). Resultado?",
+                options: ["Advertência", "Falta Grave", "Desclassificação", "Luta reinicia"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["kani", "gravissima"],
+                rationale: "Kani basami é proibido em todas as faixas e gera DQ."
+            },
+            {
+                id: 34,
+                text: "Durante o ajuste, o atleta sai da área de visão do árbitro sem autorização. O que ocorre?",
+                options: ["Nada", "Recebe falta grave", "Árbitro chama e, em caso de recusa, DQ", "Adversário ganha vantagem"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["uniforme", "disciplinar"],
+                rationale: "Abandonar a área sem autorização configura desobediência disciplinar."
+            },
+            {
+                id: 35,
+                text: "Atleta inicia luta com camiseta por baixo do kimono (adulto masculino). Procedimento?",
+                options: ["Permitido", "Precisa remover ou será DQ", "Conta como falta grave", "Adversário recebe vantagem"],
+                correct: 1,
+                difficulty: "easy",
+                tags: ["uniforme"],
+                rationale: "Homens adultos não podem usar camiseta; recusa em ajustar leva à desclassificação."
+            },
+            {
+                id: 36,
+                text: "Quantas faltas graves acumuladas resultam em desclassificação?",
+                options: ["3", "4", "5", "6"],
+                correct: 1,
+                difficulty: "easy",
+                tags: ["acumulo", "grave"],
+                rationale: "Na quarta falta grave, o atleta é desclassificado."
+            },
+            {
+                id: 37,
+                text: "Atleta segura o próprio kimono para evitar pegada do adversário. Isso é permitido?",
+                options: ["Sim", "Só faixa preta", "Não, é falta grave", "Resulta em DQ"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["pegada", "grave"],
+                rationale: "Prender o próprio kimono para impedir pegadas é falta grave."
+            },
+            {
+                id: 38,
+                text: "O atleta utiliza linguagem obscena contra o adversário. Qual punição?",
+                options: ["Advertência", "Falta grave", "Desclassificação disciplinar", "2 pontos ao adversário"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Ofensas verbais são faltas disciplinares gravíssimas."
+            },
+            {
+                id: 39,
+                text: "Durante a luta, o atleta intencionalmente rompe a própria faixa repetidas vezes. Resultado?",
+                options: ["Nada", "Falta grave por falta de combatividade", "Somente advertência", "Adversário ganha vantagem"],
+                correct: 1,
+                difficulty: "easy",
+                tags: ["combatividade", "cinto"],
+                rationale: "Paralisar o combate intencionalmente configura falta grave."
+            },
+            {
+                id: 40,
+                text: "Atleta pisa na faixa do adversário para impedir que ele se mova. Isso gera?",
+                options: ["Segue", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["grave", "conduta"],
+                rationale: "Pisar na faixa do oponente é ação antidesportiva (falta grave)."
+            },
+            {
+                id: 41,
+                text: "Um atleta juvenil segura o quadril do árbitro ao comemorar. Qual sanção?",
+                options: ["Nenhuma", "Advertência", "Falta disciplinar (cartão vermelho)", "Pontos para o adversário"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["disciplinar", "juvenil"],
+                rationale: "Contato físico com árbitro de maneira inadequada gera cartão vermelho."
+            },
+            {
+                id: 42,
+                text: "Atleta branco tenta colocar mão dentro da calça do adversário. Decisão?",
+                options: ["Permitido", "Apenas se for passagem", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["pegada", "grave"],
+                rationale: "Mão dentro da calça/manga é falta grave."
+            },
+            {
+                id: 43,
+                text: "O atleta se comunica com o treinador pedindo instrução durante a luta. Pode?",
+                options: ["Sim", "Somente se árbitro permitir", "Depende da categoria", "Não, gera punição se insistir"],
+                correct: 3,
+                difficulty: "easy",
+                tags: ["tecnico", "disciplinar"],
+                rationale: "Interações verbais repetidas com o corner podem configurar conduta disciplinar."
+            },
+            {
+                id: 44,
+                text: "Atleta manda 'shhhh' para a torcida. O árbitro deve?",
+                options: ["Ignorar", "Aplicar cartão vermelho", "Advertir se for ofensivo", "Dar vantagem ao adversário"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Ato considerado provocação pode gerar advertência e, se insistir, punição."
+            },
+            {
+                id: 45,
+                text: "Atleta toca no rosto do adversário com as duas mãos para afastá-lo. Isso é?",
+                options: ["Permitido", "Falta leve", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "easy",
+                tags: ["rosto", "grave"],
+                rationale: "Pressão no rosto é falta técnica grave."
+            },
+
+            // MÉDIO - LOTE EXPANSÃO
+            {
+                id: 46,
+                text: "Atleta prende a manga do próprio kimono por dentro para evitar raspagem. Decisão?",
+                options: ["Segue", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["pegada", "grave"],
+                rationale: "Manipular o kimono para bloquear pegadas é falta grave."
+            },
+            {
+                id: 47,
+                text: "Após 20s sem ação em dupla puxada, ambos recebem punição. Qual sequência correta?",
+                options: ["Advertência -> Vantagem -> Pontos -> DQ", "Punição -> Vantagem -> 2 pts -> DQ", "Vantagem -> Punição -> 2 pts", "Direto DQ"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["combatividade", "acumulo"],
+                rationale: "A progressão padrão de faltas graves se aplica a ambos."
+            },
+            {
+                id: 48,
+                text: "Falta grave na prorrogação (golden score) decide a luta?",
+                options: ["Não", "Sim, quem recebe perde", "Depende do árbitro", "Vai para sorteio"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["grave", "desempate"],
+                rationale: "No tempo extra, falta grave decide imediatamente a vitória do adversário."
+            },
+            {
+                id: 49,
+                text: "Atleta juvenil faixa azul aplica chave de panturrilha. Resultado?",
+                options: ["Permitido", "Falta grave", "Desclassificação", "Vantagem"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["faixas", "gravissima"],
+                rationale: "Calf slicer só é permitido a partir da faixa marrom."
+            },
+            {
+                id: 50,
+                text: "Corrigido um erro na contagem de punições, o árbitro descobre que o atleta já tinha três faltas graves. Ao aplicar a próxima, o que ocorre?",
+                options: ["Volta para zero", "Mantém e apenas adiciona vantagem", "Aplica DQ retroativa", "Segue até o final"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["acumulo", "arbitragem"],
+                rationale: "Ao identificar quarta falta, o árbitro deve desclassificar o infrator."
+            },
+            {
+                id: 51,
+                text: "Fugir da luta para receber tratamento no córner sem autorização médica resulta em:",
+                options: ["Nada", "Advertência", "Falta grave", "Desclassificação"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["fuga", "medico"],
+                rationale: "Tratamento não autorizado é interpretado como fuga da luta."
+            },
+            {
+                id: 52,
+                text: "Atleta rompe propositalmente o próprio kimono para ganhar tempo. Qual penalidade?",
+                options: ["Segue", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["uniforme", "grave"],
+                rationale: "Destruir o próprio uniforme para parar a luta é falta grave."
+            },
+            {
+                id: 53,
+                text: "Atleta tenta levantar o adversário preso no triângulo e arremessa-o de volta ao chão. O árbitro deve?",
+                options: ["Permitir se não cair de cabeça", "Parar e punir por slam", "Dar vantagem", "Reiniciar em pé"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["slam", "finalizacao"],
+                rationale: "Levantar para projetar alguém preso em finalização é considerado slam (DQ)."
+            },
+            {
+                id: 54,
+                text: "Durante um estrangulamento, o atleta bate verbalmente com 'pare'. O que vale?",
+                options: ["Nada", "Somente se árbitro ouvir", "Conta como desistência", "Adversário escolhe"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["verbal", "finalizacao"],
+                rationale: "Qualquer verbalização pedindo parada equivale a desistência."
+            },
+            {
+                id: 55,
+                text: "Atleta joga o adversário para fora segurando na faixa quando estava sofrendo raspagem. Qual combo de penalidades?",
+                options: ["Nada", "Apenas vantagem", "Falta e 2 pontos ao adversário", "DQ"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["fuga", "pontuação"],
+                rationale: "Evitar pontuação jogando para fora rende punição e pontos correspondentes."
+            },
+            {
+                id: 56,
+                text: "Em até quantos segundos o atleta deve responder ao comando 'Combate'?",
+                options: ["5s", "10s", "15s", "20s"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["tempo", "combatividade"],
+                rationale: "Demorar mais de 10 segundos caracteriza falta de combatividade."
+            },
+            {
+                id: 57,
+                text: "O atleta prende o adversário segurando apenas o cordão da calça. Isso é:",
+                options: ["Permitido", "Falta grave", "Desclassificação", "Advertência"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["pegada", "grave"],
+                rationale: "Segurar apenas o cordão é proibido e resulta em falta grave."
+            },
+            {
+                id: 58,
+                text: "Atleta juvenil faixa verde aplica bote em pé (puxando kneereap) cruzando a perna sem fazer força. O árbitro deve?",
+                options: ["Deixar seguir", "Parar e instruir", "Punir com falta grave", "DQ"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["reaping", "juvenil"],
+                rationale: "Juvenis não têm a exceção de defesa do knee reaping; quando cruzam, é punição."
+            },
+            {
+                id: 59,
+                text: "Um arremesso válido termina com ambos caindo fora. Como reinicia?",
+                options: ["Mesma posição no centro", "Em pé", "Escolha do árbitro", "Vantagem para quem derrubou"],
+                correct: 0,
+                difficulty: "medium",
+                tags: ["reinício", "quedas"],
+                rationale: "Quedas que saem devem reiniciar no centro na mesma posição."
+            },
+            {
+                id: 60,
+                text: "Atleta segura o placar manualmente para ver pontuação durante a luta. Pode?",
+                options: ["Sim", "Apenas olhando", "Resulta em falta disciplinar", "Recebe vantagem"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["disciplinar", "arbitragem"],
+                rationale: "Manipular equipamentos oficiais é falta disciplinar."
+            },
+            {
+                id: 61,
+                text: "O atleta desloca propositalmente as placas de publicidade para ganhar espaço. Punição?",
+                options: ["Nenhuma", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["disciplinar", "area"],
+                rationale: "Alterar a área de luta é conduta antidesportiva grave."
+            },
+            {
+                id: 62,
+                text: "Na chave de pé reta, o atleta empurra o quadril do oponente com o pé oposto formando triangulação. Decisão?",
+                options: ["Permitido", "Advertência", "Falta grave", "DQ por reaping"],
+                correct: 3,
+                difficulty: "medium",
+                tags: ["reaping", "botinha"],
+                rationale: "Triangular a perna oposta sobre o quadril caracteriza knee reaping (DQ nas faixas sem permissão)."
+            },
+            {
+                id: 63,
+                text: "Faixa roxa aplica wristlock usando as duas mãos no pulso. Permitido?",
+                options: ["Sim", "Sim, desde que reto", "Não, falta grave", "DQ"],
+                correct: 0,
+                difficulty: "medium",
+                tags: ["faixas", "restricao"],
+                rationale: "Chave de punho é liberada a partir da faixa roxa."
+            },
+            {
+                id: 64,
+                text: "O atleta derruba o adversário e comemora andando pelo tatame antes de consolidar. O árbitro deve?",
+                options: ["Permitir", "Pausar e punir por falta disciplinar", "Apenas advertir", "Dar pontos ao adversário"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["disciplinar", "combatividade"],
+                rationale: "Abandonar a luta em andamento para comemorar é conduta disciplinar."
+            },
+            {
+                id: 65,
+                text: "Atleta vai ao banheiro sem autorização entre lutas do absoluto. O que ocorre?",
+                options: ["Nada", "Advertência", "Pode ser desclassificado", "Perde 2 pontos"] ,
+                correct: 2,
+                difficulty: "medium",
+                tags: ["disciplinar", "area"],
+                rationale: "Abandonar o perímetro sem autorização pode resultar em DQ."
+            },
+            {
+                id: 66,
+                text: "Coach usa linguagem ofensiva repetidamente após advertência. Ação correta?",
+                options: ["Ignorar", "Cartão amarelo", "Cartão vermelho ao coach e atleta desclassificado", "Tirar ponto"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["tecnico", "disciplinar"],
+                rationale: "Interferência grave do canto resulta em cartão vermelho ao atleta representado."
+            },
+            {
+                id: 67,
+                text: "Atleta tenta bater dando pequenos tapinhas nas pernas do adversário. Conta?",
+                options: ["Não", "Sim, se visível", "Só se árbitro confirmar", "Vira vantagem"],
+                correct: 1,
+                difficulty: "medium",
+                tags: ["verbal", "finalizacao"],
+                rationale: "Batidas leves porém repetidas caracterizam desistência."
+            },
+            {
+                id: 68,
+                text: "Competidor segura no fundo da gola do próprio adversário com quatro dedos para impedir passagem. Permitido?",
+                options: ["Sim", "Não, falta grave", "Resulta em DQ", "Só faixa preta"],
+                correct: 0,
+                difficulty: "medium",
+                tags: ["pegada"],
+                rationale: "Pegada interna normal é permitida; apenas dentro da manga/calça é proibido."
+            },
+            {
+                id: 69,
+                text: "Atleta juvenil executa bote em pé arremessando o adversário de costas sem controle na cabeça. Isso gera?",
+                options: ["Segue", "Vantagem", "Falta grave", "DQ"],
+                correct: 3,
+                difficulty: "medium",
+                tags: ["juvenil", "slam"],
+                rationale: "Jogadas perigosas sem controle são consideradas slam."
+            },
+            {
+                id: 70,
+                text: "A luta é interrompida por sangramento e o atleta demora mais que o tempo máximo para estancar. Resultado?",
+                options: ["Volta assim que puder", "Recebe falta grave", "É desclassificado", "Adversário perde pontos"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["medico", "seguranca"],
+                rationale: "Não recuperar a condição sanitária no tempo previsto leva à desclassificação."
+            },
+            {
+                id: 71,
+                text: "Quais atletas podem utilizar calças com elástico vertical visível?",
+                options: ["Todos", "Apenas infantil", "Nenhum", "Somente feminino"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["uniforme"],
+                rationale: "Calça com elástico na altura dos tornozelos não é permitida."
+            },
+            {
+                id: 72,
+                text: "Atleta cai por trás segurando o cinto do adversário e não larga mesmo após o árbitro mandar parar. Punição?",
+                options: ["Falta leve", "Falta grave", "Desclassificação disciplinar", "Nada"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["disciplinar", "seguranca"],
+                rationale: "Desobedecer comando de soltar é conduta disciplinar."
+            },
+            {
+                id: 73,
+                text: "No golden score, ambos atletas recebem terceira falta grave simultânea. O que acontece?",
+                options: ["Continua", "Decisão dos árbitros", "Ambos desclassificados", "Reinicia"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["acumulo", "desempate"],
+                rationale: "Faltas que levam à quarta punição resultam em DQ, mesmo simultâneo."
+            },
+            {
+                id: 74,
+                text: "Atleta segura o braço do árbitro pedindo reavaliação de pontos. Isso gera?",
+                options: ["Nada", "Advertência", "Cartão vermelho", "Pontuação"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["disciplinar", "arbitragem"],
+                rationale: "Contato físico com a arbitragem é falta disciplinar."
+            },
+            {
+                id: 75,
+                text: "A equipe comemora jogando objeto no tatame. Consequência?",
+                options: ["Nenhuma", "Advertência", "Cartão vermelho ao atleta", "Pontos ao adversário"],
+                correct: 2,
+                difficulty: "medium",
+                tags: ["tecnico", "disciplinar"],
+                rationale: "Interferência externa com objetos resulta em cartão vermelho."
+            },
+
+            // DIFÍCIL - LOTE EXPANSÃO
+            {
+                id: 76,
+                text: "Faixa marrom aplica chave de bíceps (biceps slicer) contra faixa roxa. Permitido?",
+                options: ["Sim", "Não, falta grave", "Só em absoluto", "DQ"],
+                correct: 0,
+                difficulty: "hard",
+                tags: ["faixas", "restricao"],
+                rationale: "Biceps slicer só é permitido para marrom e preta; portanto é válido."
+            },
+            {
+                id: 77,
+                text: "Knee reaping defensivo por faixa marrom sem segurar o pé causa?",
+                options: ["Nada", "Falta grave", "DQ", "Reinício"],
+                correct: 0,
+                difficulty: "hard",
+                tags: ["reaping", "preta"],
+                rationale: "Marrom/preta podem cruzar a perna defensivamente se não atacam a perna."
+            },
+            {
+                id: 78,
+                text: "Durante 50/50, ambos ficam amarrando sem pontuar por 40s. Após advertências, qual ação final?",
+                options: ["Sorteio", "DQ dos dois", "Árbitro escolhe vencedor", "Reinício em pé"],
+                correct: 1,
+                difficulty: "hard",
+                tags: ["combatividade", "acumulo"],
+                rationale: "Persistência em negativa de combatividade após punições leva à desclassificação."
+            },
+            {
+                id: 79,
+                text: "Atleta faz pegada de aranha inserindo dedos do pé dentro da manga adversária. Resultado?",
+                options: ["Permitido", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["pegada", "grave"],
+                rationale: "Inserir pés dentro da manga configura falta grave."
+            },
+            {
+                id: 80,
+                text: "Defesa de leg drag jogando o adversário para fora com os dois pés. Penalidade?",
+                options: ["Nenhuma", "Vantagem", "Falta grave + 2 pts", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["fuga", "pontuação"],
+                rationale: "Fuga deliberada da área gera punição e os pontos ao adversário."
+            },
+            {
+                id: 81,
+                text: "Atleta insiste em mover o protetor bucal com a mão durante a luta. O árbitro deve?",
+                options: ["Nada", "Advertir", "Parar e punir por higiene", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["higiene", "seguranca"],
+                rationale: "Contato repetido no protetor com a mão viola normas de higiene e pode render punição."
+            },
+            {
+                id: 82,
+                text: "Faixa preta tenta estrangular inserindo dedos dentro da boca do adversário. Consequência?",
+                options: ["Segue", "Falta grave", "DQ", "Advertência"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["higiene", "gravissima"],
+                rationale: "Inserir dedos na boca é falta gravíssima, causando DQ."
+            },
+            {
+                id: 83,
+                text: "Durante transição, o árbitro percebe sangue no atleta que tenta esconder. O que acontece?",
+                options: ["Nada", "Falta grave", "Luta pausada para limpeza e, se insistir, DQ", "Vantagem ao adversário"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["higiene", "medico"],
+                rationale: "Esconder sangramento é conduta disciplinar; persistência leva à desclassificação."
+            },
+            {
+                id: 84,
+                text: "Atleta marrom executa chave de calcanhar no No-Gi (evento permitido). Mas o evento é Gi IBJJF. Resultado?",
+                options: ["Segue", "Falta grave", "DQ", "Vantagem"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["ilegal", "preta"],
+                rationale: "Heel hook é proibido de kimono, independente da faixa."
+            },
+            {
+                id: 85,
+                text: "Árbitro encontra protetor genital rígido (proibido). O atleta insiste em usar. Consequência?",
+                options: ["Advertência", "Perda de pontos", "Desclassificação disciplinar", "Segue"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["seguranca", "uniforme"],
+                rationale: "Equipamentos proibidos que não são removidos levam à DQ."
+            },
+            {
+                id: 86,
+                text: "Atleta derruba e, antes da pontuação, sai comemorando e empurra o adversário. Qual decisão?",
+                options: ["Advertência", "Falta grave", "DQ disciplinar", "Reinício"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Contato físico agressivo após ação resulta em cartão vermelho."
+            },
+            {
+                id: 87,
+                text: "Durante luta, o atleta joga protetor bucal propositalmente para parar o tempo. Punição?",
+                options: ["Advertência", "Falta grave", "DQ", "Nada"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "tempo"],
+                rationale: "Forçar pausa simulando problema de equipamento é conduta gravíssima."
+            },
+            {
+                id: 88,
+                text: "Atleta defende raspagem segurando o placar ao lado para não sair. Isso causa?",
+                options: ["Nada", "Advertência", "Falta grave e 2 pontos", "DQ"],
+                correct: 3,
+                difficulty: "hard",
+                tags: ["fuga", "arbitragem"],
+                rationale: "Usar estruturas externas para impedir ação gera DQ."
+            },
+            {
+                id: 89,
+                text: "Faixa preta aplica leg lock invertido torcendo para dentro e dobrando o joelho lateralmente. Resultado?",
+                options: ["Permitido", "Falta grave", "DQ", "Advertência"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["gravissima", "preta"],
+                rationale: "Técnicas que torcem o joelho lateralmente são ilegais até mesmo na preta."
+            },
+            {
+                id: 90,
+                text: "Atleta dá tapa no adversário para ajustar pegada. Qual sanção?",
+                options: ["Nenhuma", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Contato hostil é falta disciplinar."
+            },
+            {
+                id: 91,
+                text: "O árbitro percebe que o atleta está deliberadamente diminuindo o tempo de amarração do adversário. Ele chama 'Compreende?'. Recusa gera?",
+                options: ["Nada", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["combatividade", "disciplinar"],
+                rationale: "Não obedecer comando direto configura falta grave."
+            },
+            {
+                id: 92,
+                text: "Durante 50/50, atleta puxa o adversário para fora para reiniciar em pé. Resultado?",
+                options: ["Permitido", "Advertência", "Falta grave e 2 pontos", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["fuga", "pontuação"],
+                rationale: "Fuga intencional sempre concede punição e pontos."
+            },
+            {
+                id: 93,
+                text: "Atleta aplica wristlock no dedão quando defendia chave de braço. Permitido?",
+                options: ["Sim", "Não, falta grave", "DQ", "Somente preta"],
+                correct: 1,
+                difficulty: "hard",
+                tags: ["pegada", "grave"],
+                rationale: "Manipular individualmente o dedo é falta grave."
+            },
+            {
+                id: 94,
+                text: "Queda estilo suplex mantendo as mãos e controlando a descida pelas costas. Resultado?",
+                options: ["Permitido", "Falta grave", "DQ", "Vantagem"],
+                correct: 0,
+                difficulty: "hard",
+                tags: ["slam", "seguranca"],
+                rationale: "Suplex é permitido se há controle e o adversário não cai sobre cabeça/pescoço."
+            },
+            {
+                id: 95,
+                text: "Atleta atravessa o tatame correndo para comemorar antes do anúncio oficial. Consequência?",
+                options: ["Nada", "Advertência", "Cartão vermelho", "Reinício"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Protesto/comemoração exagerada antes da decisão pode gerar DQ."
+            },
+            {
+                id: 96,
+                text: "Coach usa sinal luminoso de celular para orientar atleta. Qual ação?",
+                options: ["Permitir", "Advertir", "Cartão vermelho", "Somente aviso"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["tecnico", "disciplinar"],
+                rationale: "Uso de equipamentos eletrônicos para interferir resulta em cartão vermelho."
+            },
+            {
+                id: 97,
+                text: "Atleta adulto começa a luta mascando chiclete escondido. Descoberto, ele recusa retirar. Resultado?",
+                options: ["Nada", "Advertência", "Desclassificação", "Pontos ao adversário"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["higiene", "seguranca"],
+                rationale: "Objetos na boca além do protetor são proibidos; recusa leva à DQ."
+            },
+            {
+                id: 98,
+                text: "Atleta se joga para fora com ambas as mãos no rosto do adversário para escapar da montada. Resultado?",
+                options: ["Nada", "Falta grave", "Falta grave + 4 pontos", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["fuga", "pontuação", "rosto"],
+                rationale: "Fuga com contato ilegal gera falta grave e pontuação correspondente (4 pts)."
+            },
+            {
+                id: 99,
+                text: "Após finalização, o atleta segue aplicando pressão ignorando o árbitro. Sanção?",
+                options: ["Advertência", "Falta grave", "Desclassificação disciplinar", "Nada"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "seguranca"],
+                rationale: "Desobedecer stop em finalização é conduta gravíssima."
+            },
+            {
+                id: 100,
+                text: "Atleta juvenil pega no triângulo invertido e gira o quadril para dentro (reaping). Punição?",
+                options: ["Válido", "Advertência", "Falta grave", "DQ"],
+                correct: 3,
+                difficulty: "hard",
+                tags: ["juvenil", "reaping"],
+                rationale: "Juvenis não podem cruzar para dentro; resulta em DQ."
+            },
+            {
+                id: 101,
+                text: "No absoluto adulto, o atleta defende queda segurando o placar eletrônico. Decisão?",
+                options: ["Advertência", "Falta grave", "Desclassificação", "Reinício"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["area", "fuga"],
+                rationale: "Apoiar-se em estruturas externas para impedir ação leva a DQ."
+            },
+            {
+                id: 102,
+                text: "Atleta aplica americana no bíceps com pegada cruzada forçando o punho. Permitido para faixas azuis?",
+                options: ["Sim", "Não, falta grave", "DQ", "Somente feminino"],
+                correct: 0,
+                difficulty: "hard",
+                tags: ["faixas", "restricao"],
+                rationale: "Americana é permitida desde a faixa branca; foco é no cotovelo."
+            },
+            {
+                id: 103,
+                text: "Atleta utiliza o 'bolo de ar' (socar o tatame) para assustar o adversário. Isso gera?",
+                options: ["Nada", "Advertência", "Falta grave", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Ameaças/intimidações físicas são condutas disciplinares."
+            },
+            {
+                id: 104,
+                text: "Atleta fica sendo atendido fora da área por mais de 2 minutos sem justificativa médica. Resultado?",
+                options: ["Volta", "Perde vantagem", "Desclassificação", "Nada"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["medico", "tempo"],
+                rationale: "Se não retorna em tempo razoável ou sem autorização, é desclassificado."
+            },
+            {
+                id: 105,
+                text: "Quinta falta gravíssima técnica acumulada no evento acarreta?",
+                options: ["Suspensão do evento", "Sem efeito", "Relato disciplinar para banimento", "Perde medalha"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["gravissima", "disciplinar"],
+                rationale: "Acúmulos de gravíssimas podem gerar sanções disciplinares adicionais."
+            },
+            {
+                id: 106,
+                text: "Atleta feminina tenta competir com top esportivo aberto nas costas. Procedimento?",
+                options: ["Permitido", "Advertido", "Obrigada a ajustar ou DQ", "Somente com colete"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["uniforme", "seguranca"],
+                rationale: "Uniformes devem seguir padrão IBJJF; recusa em ajustar leva à desclassificação."
+            },
+            {
+                id: 107,
+                text: "Ao fim da luta, o atleta chuta o placar eletrônico. Qual sanção?",
+                options: ["Advertência", "Falta grave", "Desclassificação disciplinar", "Perde medalha"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "arbitragem"],
+                rationale: "Danos deliberados a equipamentos oficiais são conduta disciplinar gravíssima."
+            },
+            {
+                id: 108,
+                text: "Atleta dá salto mortal comemorando e cai de forma perigosa no adversário. Resultado?",
+                options: ["Nada", "Advertência", "Falta grave", "Desclassificação"],
+                correct: 3,
+                difficulty: "hard",
+                tags: ["disciplinar", "seguranca"],
+                rationale: "Atitudes que colocam outros em risco após a luta podem gerar DQ imediata."
+            },
+            {
+                id: 109,
+                text: "Atleta se recusa a apertar mãos antes da luta após ordem do árbitro. Consequência?",
+                options: ["Nenhuma", "Advertência", "Falta disciplinar", "DQ"],
+                correct: 2,
+                difficulty: "hard",
+                tags: ["disciplinar", "respeito"],
+                rationale: "Recusar cumprimento obrigatório é conduta disciplinar."
+            },
+            {
+                id: 110,
+                text: "Atleta adulto utiliza bermuda térmica visível sob a calça do kimono. Permitido?",
+                options: ["Sim", "Não, deve retirar ou DQ", "Apenas preta", "Só absoluto"],
+                correct: 1,
+                difficulty: "hard",
+                tags: ["uniforme"],
+                rationale: "A calça não pode ter outra peça visível por baixo; recusa leva à desclassificação."
+            }
+        ];
+
+        const QUIZ_SIZE = 10;
+
+        const difficultyBuckets = questionsDB.reduce((acc, question) => {
+            if (!acc[question.difficulty]) {
+                acc[question.difficulty] = [];
+            }
+            acc[question.difficulty].push(question);
+            return acc;
+        }, { easy: [], medium: [], hard: [] });
+
+        const modeConfigs = {
+            random: { builder: () => mixQuestions({ easy: 3, medium: 4, hard: 3 }) },
+            easy: { builder: () => mixQuestions({ easy: QUIZ_SIZE }) },
+            hard: { builder: () => mixQuestions({ hard: 6, medium: 4 }) },
+            weakness: { builder: () => buildWeaknessQuiz() }
+        };
+
+        const modeLabels = {
+            random: 'Simulado Geral',
+            easy: 'Faixa Branca',
+            hard: 'Faixa Preta',
+            weakness: 'Corrigir Erros',
+            correction: 'Correção Imediata'
+        };
+
+        const tagDescriptions = {
+            disciplinar: 'Conduta disciplinar',
+            tempo: 'Gestão de tempo',
+            grave: 'Falta grave',
+            fuga: 'Fuga da área',
+            gravissima: 'Falta gravíssima',
+            faixas: 'Restrições por faixa',
+            restricao: 'Técnica restrita',
+            combatividade: 'Combatividade',
+            'reinício': 'Procedimento de reinício',
+            pontuação: 'Impacto na pontuação',
+            pegada: 'Pegadas ilegais',
+            botinha: 'Chave de pé',
+            reaping: 'Knee reaping/linha do joelho',
+            medico: 'Intervenção médica',
+            ilegal: 'Técnica ilegal',
+            higiene: 'Regras de higiene',
+            slam: 'Queda perigosa (slam)',
+            saida: 'Saída de área',
+            finalizacao: 'Situação de finalização',
+            rosto: 'Contato no rosto',
+            verbal: 'Desistência/verbalização',
+            respeito: 'Respeito à arbitragem',
+            simulacao: 'Simulação de situação',
+            cinto: 'Ajuste de cinto/kimono',
+            tecnico: 'Interferência do técnico',
+            kani: 'Kani basami',
+            acumulo: 'Acúmulo de punições',
+            desempate: 'Critério de desempate',
+            preta: 'Exceções faixa preta',
+            'faixa': 'Regras por faixa',
+            seguranca: 'Segurança do atleta',
+            uniforme: 'Regras de uniforme',
+            conduta: 'Conduta antidesportiva',
+            juvenil: 'Categorias juvenis',
+            arbitragem: 'Interações com a arbitragem',
+            area: 'Perímetro do tatame',
+            quedas: 'Gestão das quedas'
+        };
+        // Dica: Para adicionar mais perguntas, basta copiar o bloco { ... } acima e colar com novos dados.
+
+        // --- LÓGICA DO APP ---
+
+        let currentQuiz = [];
+        let currentIndex = 0;
+        let score = 0;
+        const storedStats = JSON.parse(localStorage.getItem('ibjjf_stats') || '{}');
+        let userStats = normalizeUserStats(storedStats);
+        let lastQuizIds = JSON.parse(localStorage.getItem('ibjjf_last_quiz')) || [];
+        let lastMode = 'random';
+        let hintAvailable = false;
+        let answeredLog = [];
+        let wrongAnswers = [];
+
+        const appShell = document.querySelector('.app-shell');
+
+        const elements = {
+            screens: {
+                start: document.getElementById('start-screen'),
+                quiz: document.getElementById('quiz-screen'),
+                result: document.getElementById('result-screen')
+            },
+            questionText: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options-container'),
+            progressBar: document.getElementById('progress-bar'),
+            currentQNum: document.getElementById('current-q-num'),
+            totalQNum: document.getElementById('total-q-num'),
+            hintPanel: document.getElementById('hint-panel'),
+            hintButton: document.getElementById('hint-btn'),
+            hintContent: document.getElementById('hint-content'),
+            totalCount: document.getElementById('total-questions-count'),
+            feedback: {
+                container: document.getElementById('feedback-container'),
+                title: document.getElementById('feedback-title'),
+                text: document.getElementById('feedback-text'),
+                icon: document.getElementById('feedback-icon')
+            },
+            nextBtn: document.getElementById('next-btn'),
+            difficultyBadge: document.getElementById('difficulty-badge'),
+            weaknessAlert: document.getElementById('weakness-alert'),
+            stats: {
+                totalGames: document.getElementById('stats-total-games'),
+                accuracy: document.getElementById('stats-accuracy'),
+                totalAnswered: document.getElementById('stats-total-answered'),
+                totalCorrect: document.getElementById('stats-total-correct'),
+                averageCount: document.getElementById('stats-average-count'),
+                lastDate: document.getElementById('stats-last-date'),
+                lastScore: document.getElementById('stats-last-score'),
+                lastSummary: document.getElementById('stats-last-summary'),
+                healthComment: document.getElementById('stats-health-comment'),
+                totalErrors: document.getElementById('stats-total-errors'),
+                topTagsList: document.getElementById('top-tags-list')
+            },
+            results: {
+                accuracy: document.getElementById('result-accuracy'),
+                answered: document.getElementById('result-answered'),
+                mode: document.getElementById('result-mode'),
+                weaknessList: document.getElementById('result-weakness-list')
+            },
+            review: {
+                section: document.getElementById('review-section'),
+                panel: document.getElementById('review-panel'),
+                list: document.getElementById('review-list'),
+                toggleButton: document.getElementById('review-toggle-btn')
+            }
+        };
+
+        // Inicialização
+        document.getElementById('total-questions-count').innerText = questionsDB.length;
+        renderDashboardStats();
+
+        function showScreen(screenName) {
+            Object.values(elements.screens).forEach(el => el.classList.add('hidden'));
+            elements.screens[screenName].classList.remove('hidden');
+        }
+
+        function resetSessionLogs() {
+            answeredLog = [];
+            wrongAnswers = [];
+        }
+
+        function startQuiz(mode = 'random') {
+            const selectedMode = modeConfigs[mode] ? mode : 'random';
+            const builder = modeConfigs[selectedMode].builder;
+            elements.weaknessAlert.classList.add('hidden');
+
+            const pool = builder();
+            if (!pool || pool.length === 0) {
+                if (selectedMode === 'weakness') {
+                    elements.weaknessAlert.classList.remove('hidden');
+                    showHome();
+                }
+                return;
+            }
+
+            resetSessionLogs();
+            currentQuiz = applyRecentExclusion(pool);
+            currentIndex = 0;
+            score = 0;
+            lastMode = selectedMode;
+            showScreen('quiz');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuiz[currentIndex];
+            
+            // UI Reset
+            elements.feedback.container.classList.add('hidden');
+            elements.nextBtn.classList.add('hidden');
+            elements.optionsContainer.innerHTML = '';
+            
+            // Dados da Questão
+            elements.questionText.innerText = q.text;
+            elements.currentQNum.innerText = currentIndex + 1;
+            elements.totalQNum.innerText = currentQuiz.length;
+            prepareHint(q.tags || []);
+            
+            // Badge de Dificuldade
+            const diffMap = { 'easy': 'Fácil', 'medium': 'Médio', 'hard': 'Difícil' };
+            const colorMap = { 'easy': 'bg-green-100 text-green-800', 'medium': 'bg-yellow-100 text-yellow-800', 'hard': 'bg-red-100 text-red-800' };
+            elements.difficultyBadge.className = `px-2 py-1 rounded text-xs font-bold uppercase ${colorMap[q.difficulty]}`;
+            elements.difficultyBadge.innerText = diffMap[q.difficulty];
+
+            // Barra de Progresso
+            const totalQuestions = currentQuiz.length || 1;
+            elements.progressBar.style.width = `${(currentIndex / totalQuestions) * 100}%`;
+
+            // Gerar Opções embaralhadas
+            const shuffledOptions = shuffleArray(q.options.map((opt, index) => ({ text: opt, originalIndex: index })));
+            shuffledOptions.forEach(({ text, originalIndex }) => {
+                const btn = document.createElement('button');
+                btn.className = "option-button w-full text-left p-4 rounded-xl border-2 border-gray-200 font-medium text-gray-700 bg-white";
+                btn.innerText = text;
+                btn.dataset.optionIndex = originalIndex;
+                btn.onclick = () => checkAnswer(originalIndex, btn);
+                elements.optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            // Desativar cliques
+            const buttons = elements.optionsContainer.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            const q = currentQuiz[currentIndex];
+            const isCorrect = selectedIndex === q.correct;
+
+            const logEntry = {
+                id: q.id,
+                text: q.text,
+                options: q.options.slice(),
+                correctIndex: q.correct,
+                selectedIndex,
+                rationale: q.rationale || ''
+            };
+            answeredLog.push(logEntry);
+
+            if (isCorrect) {
+                score++;
+                btnElement.classList.add('correct-anim');
+                showFeedback(true, "Correto!", q.rationale);
+            } else {
+                btnElement.classList.add('wrong-anim');
+                // Destacar a correta
+                const correctBtn = Array.from(buttons).find(button => parseInt(button.dataset.optionIndex || '-1', 10) === q.correct);
+                if (correctBtn) {
+                    correctBtn.classList.add('correct-anim');
+                }
+                showFeedback(false, "Incorreto", q.rationale);
+
+                wrongAnswers.push(logEntry);
+                
+                // Salvar erro para estatística
+                q.tags.forEach(tag => {
+                    userStats.wrongTags[tag] = (userStats.wrongTags[tag] || 0) + 1;
+                });
+                saveStats();
+            }
+
+            elements.nextBtn.classList.remove('hidden');
+        }
+
+        function showFeedback(isCorrect, title, text) {
+            elements.feedback.container.classList.remove('hidden');
+            elements.feedback.container.className = `p-4 rounded border-l-4 mb-4 slide-up ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`;
+            elements.feedback.title.innerText = title;
+            elements.feedback.title.className = `font-bold ${isCorrect ? 'text-green-800' : 'text-red-800'}`;
+            elements.feedback.text.innerText = text;
+            elements.feedback.icon.innerHTML = isCorrect ? '<i class="fas fa-check-circle text-green-500"></i>' : '<i class="fas fa-times-circle text-red-500"></i>';
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < currentQuiz.length) {
+                loadQuestion();
+            } else {
+                elements.progressBar.style.width = '100%';
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            showScreen('result');
+            const totalQuestions = currentQuiz.length || QUIZ_SIZE;
+            const percentage = Math.round((score / totalQuestions) * 100);
+
+            userStats.totalGames += 1;
+            userStats.totalAnswered += totalQuestions;
+            userStats.totalCorrect += score;
+            userStats.lastScore = score;
+            userStats.lastTotal = totalQuestions;
+            userStats.lastMode = lastMode;
+            userStats.lastAccuracy = percentage;
+            userStats.lastFinishedAt = new Date().toISOString();
+            saveStats();
+            lastQuizIds = currentQuiz.map(question => question.id);
+            localStorage.setItem('ibjjf_last_quiz', JSON.stringify(lastQuizIds));
+            renderDashboardStats();
+            
+            // Animação do score
+            const scoreCircle = document.getElementById('score-circle');
+            scoreCircle.innerText = `${percentage}%`;
+            scoreCircle.className = `w-32 h-32 rounded-full border-8 flex items-center justify-center mb-6 text-4xl font-bold ${percentage >= 70 ? 'border-green-500 text-green-600' : 'border-red-500 text-red-600'}`;
+
+            elements.results.accuracy.innerText = `${percentage}%`;
+            elements.results.answered.innerText = `${score}/${totalQuestions} acertos`;
+            elements.results.mode.innerText = modeLabels[lastMode] || modeLabels.random;
+            renderWeaknessList(elements.results.weaknessList, 4);
+            renderReviewSection();
+
+            const msgEl = document.getElementById('result-msg');
+            const tipEl = document.getElementById('study-tip');
+
+            if (percentage === 100) {
+                msgEl.innerText = "Perfeito! Você dominou essas questões. Está pronto para subir o nível.";
+                tipEl.innerText = "Tente o modo 'Mais Difícil' para exercitar exceções por faixa, critérios de desempate e outras situações especiais.";
+            } else if (percentage >= 70) {
+                msgEl.innerText = "Muito bom! Você tem uma base sólida, mas atenção aos detalhes.";
+                tipEl.innerText = "Revise quais situações geram apenas advertências, penalidades progressivas ou desclassificação imediata.";
+            } else {
+                msgEl.innerText = "Precisa de mais treino. Não desanime, as regras são complexas!";
+                tipEl.innerText = "Foque em entender a progressão de penalidades e o impacto de cada infração no placar. Use o modo 'Corrigir Erros' na próxima.";
+            }
+        }
+
+        function restartQuiz(difficultyAdjustment) {
+            let targetMode = lastMode || 'random';
+            if (difficultyAdjustment === 'easier') targetMode = 'easy';
+            if (difficultyAdjustment === 'harder') targetMode = 'hard';
+            if (difficultyAdjustment === 'same') targetMode = lastMode || 'random';
+            startQuiz(targetMode);
+        }
+
+        function abortQuiz() {
+            if (!confirm('Deseja abandonar o simulado atual?')) return;
+            currentQuiz = [];
+            currentIndex = 0;
+            score = 0;
+            elements.progressBar.style.width = '0%';
+            showHome();
+        }
+
+        function resetHistory() {
+            if (!confirm('Isso limpará sua precisão e estatísticas salvas. Deseja continuar?')) return;
+            userStats = normalizeUserStats({});
+            lastQuizIds = [];
+            localStorage.removeItem('ibjjf_stats');
+            localStorage.removeItem('ibjjf_last_quiz');
+            renderDashboardStats();
+        }
+
+        function mixQuestions(blueprint) {
+            const picked = new Set();
+            let selection = [];
+
+            Object.entries(blueprint).forEach(([difficulty, amount]) => {
+                if (!amount) return;
+                const bucket = difficultyBuckets[difficulty] || [];
+                selection = selection.concat(drawFromList(bucket, amount, picked));
+            });
+
+            const shortfall = QUIZ_SIZE - selection.length;
+            if (shortfall > 0) {
+                selection = selection.concat(drawFromList(questionsDB, shortfall, picked));
+            }
+
+            return shuffleArray(selection).slice(0, QUIZ_SIZE);
+        }
+
+        function applyRecentExclusion(pool) {
+            if (!lastQuizIds || !lastQuizIds.length) {
+                return pool.slice(0, QUIZ_SIZE);
+            }
+
+            const exclusionSet = new Set(lastQuizIds);
+            const filtered = pool.filter(question => !exclusionSet.has(question.id));
+
+            if (filtered.length >= QUIZ_SIZE) {
+                return filtered.slice(0, QUIZ_SIZE);
+            }
+
+            const needed = QUIZ_SIZE - filtered.length;
+            const fallback = drawFromList(questionsDB.filter(q => !exclusionSet.has(q.id)), needed, new Set(filtered.map(q => q.id)));
+            return filtered.concat(fallback).slice(0, QUIZ_SIZE);
+        }
+
+        function buildWeaknessQuiz() {
+            const weakEntries = Object.entries(userStats.wrongTags || {}).sort((a, b) => b[1] - a[1]);
+            if (!weakEntries.length) {
+                return null;
+            }
+
+            const prioritizedPool = questionsDB
+                .map(question => ({ question, score: getWeaknessScore(question) }))
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .map(item => item.question);
+
+            if (!prioritizedPool.length) {
+                return null;
+            }
+
+            const picked = new Set();
+            const targetWeakCount = Math.max(6, Math.ceil(QUIZ_SIZE * 0.6));
+            let selection = drawFromList(prioritizedPool, targetWeakCount, picked);
+
+            if (selection.length < QUIZ_SIZE) {
+                selection = selection.concat(drawFromList(questionsDB, QUIZ_SIZE - selection.length, picked));
+            }
+
+            return shuffleArray(selection).slice(0, QUIZ_SIZE);
+        }
+
+        function drawFromList(list, count, pickedSet = new Set()) {
+            if (count <= 0) return [];
+            const available = list.filter(question => !pickedSet.has(question.id));
+            if (!available.length) return [];
+            const shuffled = shuffleArray(available);
+            const slice = shuffled.slice(0, Math.min(count, shuffled.length));
+            slice.forEach(question => pickedSet.add(question.id));
+            return slice;
+        }
+
+        function shuffleArray(array) {
+            const clone = array.slice();
+            for (let i = clone.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [clone[i], clone[j]] = [clone[j], clone[i]];
+            }
+            return clone;
+        }
+
+        function getWeaknessScore(question) {
+            if (!question || !question.tags) return 0;
+            const tagStats = userStats.wrongTags || {};
+            return question.tags.reduce((total, tag) => total + (tagStats[tag] || 0), 0);
+        }
+
+        function prepareHint(tags) {
+            if (!elements.hintButton || !elements.hintPanel) return;
+            hintAvailable = Array.isArray(tags) && tags.length > 0;
+            elements.hintPanel.classList.add('hidden');
+            elements.hintContent.innerText = hintAvailable
+                ? buildHintText(tags)
+                : 'Não há dicas adicionais para esta questão.';
+            elements.hintButton.disabled = !hintAvailable;
+            elements.hintButton.innerText = hintAvailable ? 'Ver dica' : 'Sem dica';
+        }
+
+        function toggleHint() {
+            if (!hintAvailable || !elements.hintPanel) return;
+            const isHidden = elements.hintPanel.classList.contains('hidden');
+            if (isHidden) {
+                elements.hintPanel.classList.remove('hidden');
+                elements.hintButton.innerText = 'Ocultar dica';
+            } else {
+                elements.hintPanel.classList.add('hidden');
+                elements.hintButton.innerText = 'Ver dica';
+            }
+        }
+
+        function buildHintText(tags) {
+            const descriptions = tags
+                .map(tag => tagDescriptions[tag] || formatFallbackTag(tag))
+                .filter(Boolean);
+            if (!descriptions.length) {
+                return 'Sem dicas adicionais para esta questão.';
+            }
+            return `Temas relacionados: ${descriptions.join(' · ')}`;
+        }
+
+        function formatFallbackTag(tag) {
+            if (!tag) return '';
+            return tag
+                .replace(/[-_]/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+
+        function renderDashboardStats() {
+            if (!elements.stats || !elements.stats.totalGames) return;
+            elements.stats.totalGames.innerText = userStats.totalGames || 0;
+            elements.stats.totalAnswered.innerText = userStats.totalAnswered || 0;
+            const accuracy = userStats.totalAnswered ? Math.round((userStats.totalCorrect / userStats.totalAnswered) * 100) : 0;
+            elements.stats.accuracy.innerText = `${accuracy}%`;
+            if (elements.stats.totalCorrect) {
+                elements.stats.totalCorrect.innerText = userStats.totalCorrect || 0;
+            }
+            if (elements.stats.averageCount) {
+                const avg = userStats.totalGames ? Math.round(userStats.totalAnswered / userStats.totalGames) : QUIZ_SIZE;
+                elements.stats.averageCount.innerText = isNaN(avg) ? QUIZ_SIZE : avg;
+            }
+            if (elements.stats.lastDate) {
+                const lastDate = userStats.lastFinishedAt ? new Date(userStats.lastFinishedAt) : null;
+                elements.stats.lastDate.innerText = lastDate && !isNaN(lastDate) ? lastDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—';
+            }
+            if (elements.stats.lastScore) {
+                if (userStats.totalGames && userStats.lastTotal) {
+                    elements.stats.lastScore.innerText = `${userStats.lastScore}/${userStats.lastTotal}`;
+                    const modeLabel = modeLabels[userStats.lastMode] || modeLabels.random;
+                    const summaryText = `${userStats.lastAccuracy || 0}% · ${modeLabel}`;
+                    if (elements.stats.lastSummary) {
+                        elements.stats.lastSummary.innerText = summaryText;
+                    }
+                } else {
+                    elements.stats.lastScore.innerText = '--';
+                    if (elements.stats.lastSummary) {
+                        elements.stats.lastSummary.innerText = 'Complete um simulado para ver detalhes.';
+                    }
+                }
+            }
+            if (elements.stats.healthComment) {
+                let comment = 'Resolva seu primeiro simulado para desbloquear insights personalizados.';
+                if (userStats.totalGames) {
+                    if (accuracy >= 85) comment = 'Excelente consistência! Explore modos desafiadores para manter o ritmo.';
+                    else if (accuracy >= 60) comment = 'Bom progresso. Reforce os tópicos com mais erros para subir a precisão.';
+                    else comment = 'Foque nas fraquezas destacadas e utilize o modo Corrigir Erros para recuperar terreno.';
+                }
+                elements.stats.healthComment.innerText = comment;
+            }
+            const totalErrors = Object.values(userStats.wrongTags || {}).reduce((sum, count) => sum + count, 0);
+            if (elements.stats.totalErrors) {
+                elements.stats.totalErrors.innerText = totalErrors
+                    ? `${totalErrors} erro${totalErrors === 1 ? '' : 's'} registrados`
+                    : 'Nenhum erro registrado ainda.';
+            }
+            renderWeaknessList(elements.stats.topTagsList, 3, 'dashboard');
+        }
+
+        function renderWeaknessList(targetEl, limit = 3, variant = 'default') {
+            if (!targetEl) return;
+            targetEl.innerHTML = '';
+            const topTags = getTopTags(limit);
+            if (!topTags.length) {
+                const fallback = document.createElement('li');
+                fallback.className = 'text-sm text-slate-400';
+                fallback.innerText = 'Sem dados suficientes ainda.';
+                targetEl.appendChild(fallback);
+                return;
+            }
+            const totalErrors = Object.values(userStats.wrongTags || {}).reduce((sum, count) => sum + count, 0) || 0;
+            topTags.forEach(({ tag, count }) => {
+                const percent = totalErrors ? Math.round((count / totalErrors) * 100) : 0;
+                const description = tagDescriptions[tag] || formatFallbackTag(tag);
+                const li = document.createElement('li');
+                if (variant === 'dashboard') {
+                    li.className = 'p-3 rounded-xl border border-slate-100 bg-slate-50/60';
+                    li.innerHTML = `
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="font-semibold text-slate-800">#${tag}</span>
+                            <span class="text-xs text-slate-500">${count} erro${count === 1 ? '' : 's'} · ${percent}%</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-2">${description}</p>
+                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-red-200 via-rose-300 to-red-500" style="width: ${percent}%"></div>
+                        </div>
+                    `;
+                } else {
+                    li.className = 'text-sm text-slate-600';
+                    li.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800">#${tag}</span>
+                            <span>${count} erro${count === 1 ? '' : 's'}</span>
+                        </div>
+                        <p class="text-xs text-slate-500">${description}</p>
+                    `;
+                }
+                targetEl.appendChild(li);
+            });
+        }
+
+        function getTopTags(limit = 3) {
+            const entries = Object.entries(userStats.wrongTags || {})
+                .filter(([, count]) => count > 0)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, limit)
+                .map(([tag, count]) => ({ tag, count }));
+            return entries;
+        }
+
+        function renderReviewSection() {
+            const review = elements.review;
+            if (!review || !review.section) return;
+            if (!wrongAnswers.length) {
+                review.section.classList.add('hidden');
+                review.panel?.classList.add('hidden');
+                return;
+            }
+            review.section.classList.remove('hidden');
+            if (review.toggleButton) {
+                review.toggleButton.innerText = `Revisar erros (${wrongAnswers.length})`;
+            }
+            review.panel?.classList.add('hidden');
+            if (!review.list) return;
+            review.list.innerHTML = '';
+            wrongAnswers.forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <p class="font-semibold text-slate-800 mb-1">${index + 1}. ${entry.text}</p>
+                    <p class="text-xs text-red-500 mb-1">Sua resposta: ${entry.options[entry.selectedIndex] || '—'}</p>
+                    <p class="text-xs text-green-600">Correta: ${entry.options[entry.correctIndex]}</p>
+                    <p class="text-xs text-slate-500 mt-1">${entry.rationale}</p>
+                `;
+                review.list.appendChild(li);
+            });
+        }
+
+        function toggleReviewPanel() {
+            const review = elements.review;
+            if (!review || !review.panel) return;
+            review.panel.classList.toggle('hidden');
+            if (review.toggleButton) {
+                review.toggleButton.innerText = review.panel.classList.contains('hidden')
+                    ? `Revisar erros (${wrongAnswers.length})`
+                    : 'Ocultar revisão';
+            }
+        }
+
+        function startCorrectionMode() {
+            if (wrongAnswers.length) {
+                const wrongPool = wrongAnswers
+                    .map(entry => questionsDB.find(question => question.id === entry.id))
+                    .filter(Boolean);
+                if (wrongPool.length) {
+                    launchCustomQuiz(wrongPool);
+                    return;
+                }
+            }
+            startQuiz('weakness');
+        }
+
+        function launchCustomQuiz(questionPool) {
+            if (!Array.isArray(questionPool) || !questionPool.length) {
+                return;
+            }
+            const seen = new Set();
+            let curated = [];
+            questionPool.forEach(question => {
+                if (question && !seen.has(question.id)) {
+                    curated.push(question);
+                    seen.add(question.id);
+                }
+            });
+            if (!curated.length) return;
+            if (curated.length < QUIZ_SIZE) {
+                const filler = drawFromList(
+                    questionsDB.filter(question => !seen.has(question.id)),
+                    QUIZ_SIZE - curated.length,
+                    seen
+                );
+                curated = curated.concat(filler);
+            }
+            curated = curated.slice(0, QUIZ_SIZE);
+            resetSessionLogs();
+            currentQuiz = curated;
+            currentIndex = 0;
+            score = 0;
+            lastMode = 'correction';
+            showScreen('quiz');
+            loadQuestion();
+        }
+
+        function normalizeUserStats(data = {}) {
+            return {
+                wrongTags: data.wrongTags || {},
+                totalGames: data.totalGames || 0,
+                totalAnswered: data.totalAnswered || 0,
+                totalCorrect: data.totalCorrect || 0,
+                lastScore: data.lastScore || 0,
+                lastTotal: data.lastTotal || 0,
+                lastMode: data.lastMode || '',
+                lastAccuracy: data.lastAccuracy || 0,
+                lastFinishedAt: data.lastFinishedAt || ''
+            };
+        }
+
+        function saveStats() {
+            localStorage.setItem('ibjjf_stats', JSON.stringify(userStats));
+        }
+
+        function showHome() {
+            showScreen('start');
+        }
+
+    </script>
+</body>
+</html>
