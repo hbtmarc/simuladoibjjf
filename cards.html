@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo Artigo 6º PRO | IBJJF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #f3f4f6; }
+
+        /* Card Flip Animation */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        .card-inner {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .highlight-match {
+            background-color: #fbbf24;
+            color: #000;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-gray-900 border-b border-gray-800 p-4 shadow-lg flex-shrink-0 z-20">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center">
+                <i class="fas fa-chess-king text-yellow-500 text-2xl mr-3"></i>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight uppercase text-white leading-none">Protocolo Artigo 6º <span class="text-yellow-500 text-xs ml-1">PRO</span></h1>
+                    <p class="text-xs text-gray-400 mt-1">IBJJF Elite Exam Prep</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="inline-flex items-center gap-2 px-4 py-1.5 rounded text-xs font-bold uppercase tracking-wide bg-blue-600 text-white shadow-lg hover:bg-blue-500 transition">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar ao Hub
+                </a>
+                <nav class="flex bg-gray-800 p-1 rounded-lg">
+                <button onclick="switchTab('manual')" id="btn-manual" class="px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-gray-700 text-gray-300 hover:text-white">
+                    <i class="fas fa-book mr-2"></i>Manual
+                </button>
+                <button onclick="switchTab('flashcards')" id="btn-flashcards" class="px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-yellow-600 text-white shadow-lg mx-1">
+                    <i class="fas fa-clone mr-2"></i>Flashcards
+                </button>
+                <button onclick="switchTab('death')" id="btn-death" class="px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-red-900 text-red-100 hover:bg-red-800">
+                    <i class="fas fa-skull mr-2"></i>Morte Súbita
+                </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative w-full max-w-5xl mx-auto p-4">
+        
+        <!-- SECTION: MANUAL (Searchable) -->
+        <section id="manual-section" class="hidden space-y-6 pb-20 fade-in">
+            
+            <!-- Search Bar -->
+            <div class="sticky top-0 z-10 bg-gray-900/95 backdrop-blur pt-2 pb-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-500"></i>
+                    <input type="text" id="manual-search" onkeyup="filterManual()" placeholder="Buscar regra (ex: joelho, bate-estaca, punição)..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none placeholder-gray-500">
+                </div>
+            </div>
+
+            <div id="manual-content" class="space-y-6">
+                <!-- Block 1 -->
+                <div class="manual-block bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="bg-yellow-900/30 p-4 border-b border-yellow-900/50 flex items-center">
+                        <div class="text-yellow-500 font-bold mr-3 text-lg">01</div>
+                        <h2 class="font-bold text-gray-100">Escada da Punição (Faltas Graves)</h2>
+                    </div>
+                    <div class="p-5 text-gray-300 text-sm">
+                        <p class="mb-4">Faltas graves (pegada ilegal, combatividade) acumulam. Não expulsam na primeira.</p>
+                        <ul class="space-y-2">
+                            <li class="flex justify-between bg-gray-700/50 p-2 rounded"><span class="font-bold">1ª Falta</span> <span>Advertência (Sem placar)</span></li>
+                            <li class="flex justify-between bg-yellow-900/20 p-2 rounded border-l-2 border-yellow-500"><span class="font-bold text-yellow-500">2ª Falta</span> <span>Vantagem p/ Adversário</span></li>
+                            <li class="flex justify-between bg-orange-900/20 p-2 rounded border-l-2 border-orange-500"><span class="font-bold text-orange-500">3ª Falta</span> <span>2 Pontos p/ Adversário</span></li>
+                            <li class="flex justify-between bg-red-900/20 p-2 rounded border-l-2 border-red-500"><span class="font-bold text-red-500">4ª Falta</span> <span class="font-black text-red-500">DQ (Desclassificação)</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Block 2 -->
+                <div class="manual-block bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="bg-red-900/30 p-4 border-b border-red-900/50 flex items-center">
+                        <div class="text-red-500 font-bold mr-3 text-lg">02</div>
+                        <h2 class="font-bold text-gray-100">Mata-Mata (DQ Imediato)</h2>
+                    </div>
+                    <div class="p-5 grid md:grid-cols-2 gap-6 text-sm text-gray-300">
+                        <div>
+                            <h3 class="font-bold text-red-400 mb-2 uppercase text-xs tracking-wider">Disciplinar (Conduta)</h3>
+                            <ul class="list-disc pl-5 space-y-1 marker:text-red-500">
+                                <li>Mordida, puxão de cabelo, dedo no olho.</li>
+                                <li>Ofensas, racismo, desrespeito ao árbitro.</li>
+                                <li>Comemorar antes do fim (desrespeitoso).</li>
+                                <li class="text-red-300 font-bold">Consequência: DQ + Expulsão do evento.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-red-400 mb-2 uppercase text-xs tracking-wider">Técnica Gravíssima</h3>
+                            <ul class="list-disc pl-5 space-y-1 marker:text-red-500">
+                                <li>Bate-estaca (Slam) intencional.</li>
+                                <li>Chave de calcanhar (Heel Hook) de Kimono.</li>
+                                <li>Cruzada de Perna (Knee Reaping) atacando ou na Azul/Roxa.</li>
+                                <li>Fuga de finalização encaixada.</li>
+                                <li>Suplex caindo de cabeça.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Block 3 -->
+                <div class="manual-block bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="bg-blue-900/30 p-4 border-b border-blue-900/50 flex items-center">
+                        <div class="text-blue-500 font-bold mr-3 text-lg">03</div>
+                        <h2 class="font-bold text-gray-100">Matriz de Faixas</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-300">
+                            <thead class="text-xs text-gray-500 uppercase bg-gray-900">
+                                <tr>
+                                    <th class="px-4 py-3">Golpe</th>
+                                    <th class="px-4 py-3 text-center">Branca</th>
+                                    <th class="px-4 py-3 text-center">Azul/Roxa</th>
+                                    <th class="px-4 py-3 text-center">Marrom/Preta</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-white">Mão de Vaca</td>
+                                    <td class="px-4 py-3 text-center text-red-500"><i class="fas fa-times"></i></td>
+                                    <td class="px-4 py-3 text-center text-green-500"><i class="fas fa-check"></i></td>
+                                    <td class="px-4 py-3 text-center text-green-500"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-white">Botinha Reta</td>
+                                    <td class="px-4 py-3 text-center text-red-500"><i class="fas fa-times"></i></td>
+                                    <td class="px-4 py-3 text-center text-green-500"><i class="fas fa-check"></i> (Sem cruzar)</td>
+                                    <td class="px-4 py-3 text-center text-green-500"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-white">Mata-leão no pé / Joelho</td>
+                                    <td class="px-4 py-3 text-center text-red-500"><i class="fas fa-times"></i></td>
+                                    <td class="px-4 py-3 text-center text-red-500"><i class="fas fa-times"></i></td>
+                                    <td class="px-4 py-3 text-center text-green-500"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-white">Compressão (Bíceps/Panturrilha)</td>
+                                    <td class="px-4 py-3 text-center text-red-500"><i class="fas fa-times"></i></td>
+                                    <td class="px-4 py-3 text-center text-red-500"><i class="fas fa-times"></i></td>
+                                    <td class="px-4 py-3 text-center text-green-500"><i class="fas fa-check"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Block 4 -->
+                <div class="manual-block bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="bg-gray-700 p-4 border-b border-gray-600 flex items-center">
+                        <div class="text-gray-400 font-bold mr-3 text-lg">04</div>
+                        <h2 class="font-bold text-gray-100">Pontos Cegos Críticos</h2>
+                    </div>
+                    <div class="p-5 space-y-3 text-sm text-gray-300">
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                            <p><strong>Mão no Rosto:</strong> Mão aberta/empurrão = <span class="text-yellow-500 font-bold">Falta Grave</span>. Soco = <span class="text-red-500 font-bold">DQ</span>.</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-running text-blue-500 mt-1 mr-3"></i>
+                            <p><strong>Fugas:</strong> Fugir de ponto = <span class="text-yellow-500 font-bold">Punição + 2 pts</span>. Fugir de finalização = <span class="text-red-500 font-bold">DQ</span>.</p>
+                        </div>
+                         <div class="flex items-start">
+                            <i class="fas fa-user-md text-green-500 mt-1 mr-3"></i>
+                            <p><strong>Médico:</strong> Sangramento não para? Vômito? Cãibra? = <span class="text-red-500 font-bold">Derrota</span>.</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-stopwatch text-purple-500 mt-1 mr-3"></i>
+                            <p><strong>Dupla Puxada:</strong> 20s parados = Punição dupla e levanta.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: FLASHCARDS (SRS) -->
+        <section id="flashcards-section" class="h-full flex flex-col items-center justify-start pt-4 pb-12 fade-in">
+            
+            <div class="w-full max-w-md flex justify-between items-center mb-6 px-2">
+                <div class="text-sm font-bold text-gray-400">
+                    <span id="remaining-count" class="text-yellow-500 text-xl">20</span> cartas restantes
+                </div>
+                <button onclick="resetCards()" class="text-xs text-gray-500 hover:text-white uppercase font-bold tracking-wider">
+                    <i class="fas fa-redo mr-1"></i> Reiniciar
+                </button>
+            </div>
+
+            <div id="card-wrapper" class="card w-full max-w-md perspective-1000 aspect-[4/3] cursor-pointer group relative z-10" onclick="flipCard()">
+                <div id="card-inner" class="card-inner transform-style-3d shadow-2xl rounded-2xl">
+                    
+                    <!-- FRONT -->
+                    <div class="absolute w-full h-full bg-gray-800 rounded-2xl flex flex-col items-center justify-center p-8 backface-hidden border border-gray-700 text-center shadow-black/50 shadow-xl">
+                        <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4 bg-blue-900/20 px-2 py-1 rounded">Pergunta</span>
+                        <h3 id="card-question" class="text-xl md:text-2xl font-bold text-gray-100 leading-tight">
+                            Carregando...
+                        </h3>
+                        <p class="absolute bottom-6 text-gray-500 text-xs font-mono animate-pulse">Toque para revelar</p>
+                    </div>
+
+                    <!-- BACK -->
+                    <div class="absolute w-full h-full bg-gray-900 rounded-2xl flex flex-col items-center justify-center p-8 backface-hidden rotate-y-180 text-center border border-gray-800 shadow-black/50 shadow-xl relative">
+                        <!-- Overlay gradient for depth -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-950 opacity-50 rounded-2xl pointer-events-none"></div>
+                        
+                        <span class="relative z-10 text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-4 bg-yellow-900/20 px-2 py-1 rounded">Resposta</span>
+                        <h3 id="card-answer" class="relative z-10 text-lg md:text-xl font-medium text-white leading-snug">
+                            ...
+                        </h3>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SRS Controls -->
+            <div id="srs-controls" class="mt-8 w-full max-w-md grid grid-cols-2 gap-4 px-2 opacity-30 pointer-events-none transition-opacity duration-200">
+                <button onclick="handleSRS('review', event)" class="py-4 rounded-xl bg-gray-800 border border-gray-700 text-red-400 hover:bg-gray-700 hover:border-red-500/50 shadow-lg flex flex-col items-center justify-center transition group">
+                    <i class="fas fa-sync-alt text-2xl mb-1 group-hover:rotate-180 transition-transform duration-500"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider">Errei / Revisar</span>
+                </button>
+                
+                <button onclick="handleSRS('mastered', event)" class="py-4 rounded-xl bg-gray-800 border border-gray-700 text-green-400 hover:bg-gray-700 hover:border-green-500/50 shadow-lg flex flex-col items-center justify-center transition group">
+                    <i class="fas fa-check text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider">Dominado (Remover)</span>
+                </button>
+            </div>
+
+            <div id="deck-completed" class="hidden absolute inset-0 bg-gray-900 z-20 flex flex-col items-center justify-center text-center p-8">
+                <i class="fas fa-trophy text-6xl text-yellow-500 mb-4 animate-bounce"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">Baralho Zerado!</h2>
+                <p class="text-gray-400 mb-6">Você revisou todos os cartões. Se ainda tiver tempo, reinicie.</p>
+                <button onclick="resetCards()" class="px-8 py-3 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-700 transition">
+                    Reiniciar Tudo
+                </button>
+            </div>
+
+        </section>
+
+        <!-- SECTION: SUDDEN DEATH (Quiz) -->
+        <section id="death-section" class="hidden h-full flex flex-col items-center justify-center pt-4 pb-12 fade-in">
+            <div id="death-intro" class="text-center max-w-md p-6 bg-red-900/10 border border-red-900/30 rounded-2xl">
+                <i class="fas fa-skull-crossbones text-5xl text-red-500 mb-4"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">Modo Morte Súbita</h2>
+                <p class="text-gray-400 mb-6 text-sm">5 Questões Aleatórias.<br>Um erro = <strong>Fim de Jogo.</strong><br>Você aguenta a pressão?</p>
+                <button onclick="startSuddenDeath()" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg shadow-red-900/50 transition">
+                    INICIAR DESAFIO
+                </button>
+            </div>
+
+            <div id="death-game" class="hidden w-full max-w-md">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Vida Única</span>
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Questão <span id="dq-current">1</span>/5</span>
+                </div>
+
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl mb-6">
+                    <p id="dq-text" class="text-lg font-bold text-white mb-2">Carregando...</p>
+                </div>
+
+                <div id="dq-options" class="grid gap-3">
+                    <!-- Options injected here -->
+                </div>
+            </div>
+
+            <div id="death-result" class="hidden text-center max-w-md p-6">
+                <div id="death-icon" class="text-6xl mb-4"></div>
+                <h2 id="death-title" class="text-3xl font-bold text-white mb-2"></h2>
+                <p id="death-msg" class="text-gray-400 mb-6"></p>
+                <button onclick="startSuddenDeath()" class="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition">
+                    Tentar Novamente
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- DATA ---
+        const originalCards = [
+            { q: "4ª falta grave acumulada resulta em?", a: "Desclassificação (DQ)." },
+            { q: "Mão de Vaca na Faixa Branca.", a: "DQ (Golpe Ilegal)." },
+            { q: "Faixa Roxa aplicando Chave de Joelho.", a: "DQ Imediato." },
+            { q: "Fugir da área para evitar queda (2 pontos).", a: "Punição + 2 pts p/ adversário." },
+            { q: "Fugir da área para evitar Armlock encaixado.", a: "Desclassificação (DQ)." },
+            { q: "Vomitar na área de luta.", a: "DQ imediata." },
+            { q: "Knee Reaping na Preta (apenas defesa).", a: "Permitido (sem atacar o pé)." },
+            { q: "Bate-Estaca (Slam) intencional.", a: "DQ (Falta Gravíssima)." },
+            { q: "Mão aberta empurrando o rosto.", a: "Falta Grave (Punição)." },
+            { q: "Dupla Puxada, 20s parados. Reinício?", a: "Em pé." },
+            { q: "Tempo médico para cãibra?", a: "Não existe. Perde a luta." },
+            { q: "Morder o adversário.", a: "DQ + Expulsão (Disciplinar)." },
+            { q: "Botinha Reta na Faixa Azul.", a: "Permitido (sem cruzar além do umbigo)." },
+            { q: "Mão de Vaca na Roxa.", a: "Permitido." },
+            { q: "Rasgar kimono de raiva.", a: "DQ (Disciplinar)." },
+            { q: "Knee Reaping na Roxa atacando pé.", a: "DQ (Falta Gravíssima)." },
+            { q: "1ª Falta Grave penalidade.", a: "Advertência (sem pontos)." },
+            { q: "3ª Falta Grave penalidade.", a: "2 Pontos p/ adversário." },
+            { q: "Heel Hook (Calcanhar) de Kimono na Preta.", a: "DQ em todas as faixas." },
+            { q: "Bicep Slicer na Roxa.", a: "DQ (Apenas Marrom/Preta)." }
+        ];
+        
+        // Quiz Data for Sudden Death (Multiple Choice)
+        const quizData = [
+            { q: "Qual a punição para Bate-Estaca?", opts: ["Falta Grave", "DQ", "2 Pontos Adv", "Vantagem Adv"], a: 1 },
+            { q: "Fugir de finalização encaixada.", opts: ["Punição + 2pts", "Reinício Centro", "DQ", "Punição"], a: 2 },
+            { q: "Punição para mão no rosto (empurrão).", opts: ["DQ", "Falta Grave", "Advertência", "Permitido"], a: 1 },
+            { q: "Faixa roxa pode dar chave de joelho?", opts: ["Sim", "Não (DQ)", "Sim (Se cruzado)", "Só marrom"], a: 1 },
+            { q: "Onde reinicia a luta após punição dupla por inatividade na puxada?", opts: ["Chão", "Sorteio", "Em Pé", "Mesma Posição"], a: 2 },
+            { q: "Limite para arrumar kimono.", opts: ["10s", "30s", "20s", "1 min"], a: 2 },
+            { q: "Quem vence em caso de cãibra?", opts: ["Adversário", "Ninguém", "Quem tem mais ponto", "Juiz decide"], a: 0 },
+            { q: "Mão de Vaca é proibida em qual faixa?", opts: ["Branca", "Azul", "Roxa", "Marrom"], a: 0 }
+        ];
+
+        // --- STATE ---
+        let activeDeck = [...originalCards];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        
+        let deathQuestions = [];
+        let deathIndex = 0;
+
+        // --- DOM REFERENCES ---
+        const cardWrapper = document.getElementById('card-wrapper');
+        const cardInnerEl = document.getElementById('card-inner');
+        const cardQuestionEl = document.getElementById('card-question');
+        const cardAnswerEl = document.getElementById('card-answer');
+        const srsControlsEl = document.getElementById('srs-controls');
+        const FLIP_FALLBACK_MS = 450;
+
+        // --- FLASHCARD LOGIC ---
+        function updateDeckCount() {
+            document.getElementById('remaining-count').innerText = activeDeck.length;
+            if (activeDeck.length === 0) {
+                document.getElementById('deck-completed').classList.remove('hidden');
+            } else {
+                document.getElementById('deck-completed').classList.add('hidden');
+            }
+        }
+
+        function loadCard(options = {}) {
+            if (activeDeck.length === 0) return;
+            const card = activeDeck[0];
+            const applyContent = () => {
+                cardQuestionEl.innerText = card.q;
+                cardAnswerEl.innerText = card.a;
+            };
+
+            const shouldWaitForFlip = cardWrapper.classList.contains('flipped') && !options.forceImmediate;
+
+            if (shouldWaitForFlip) {
+                waitForFlipReset(applyContent);
+                cardWrapper.classList.remove('flipped');
+            } else {
+                cardWrapper.classList.remove('flipped');
+                applyContent();
+            }
+            
+            // Reset state
+            isFlipped = false;
+            srsControlsEl.classList.add('opacity-30', 'pointer-events-none');
+        }
+
+        function flipCard() {
+            if (activeDeck.length === 0) return;
+            isFlipped = !isFlipped;
+            
+            if (isFlipped) {
+                cardWrapper.classList.add('flipped');
+                srsControlsEl.classList.remove('opacity-30', 'pointer-events-none');
+            } else {
+                cardWrapper.classList.remove('flipped');
+                srsControlsEl.classList.add('opacity-30', 'pointer-events-none');
+            }
+        }
+
+        function handleSRS(action, event) {
+            event.stopPropagation(); // Prevent card flip when clicking buttons
+            if (activeDeck.length === 0) return;
+
+            const currentCard = activeDeck[0];
+            
+            if (action === 'mastered') {
+                // Remove from deck
+                activeDeck.shift();
+            } else {
+                // Move to end of deck
+                activeDeck.shift();
+                activeDeck.push(currentCard);
+            }
+
+            updateDeckCount();
+            loadCard();
+        }
+
+        function resetCards() {
+            activeDeck = [...originalCards];
+            // Shuffle
+            activeDeck.sort(() => Math.random() - 0.5);
+            updateDeckCount();
+            loadCard();
+        }
+
+        function waitForFlipReset(callback) {
+            let completed = false;
+
+            const finish = () => {
+                if (completed) return;
+                completed = true;
+                cardInnerEl.removeEventListener('transitionend', handleTransition);
+                clearTimeout(fallbackTimer);
+                callback();
+            };
+
+            const handleTransition = (event) => {
+                if (event.target !== cardInnerEl || event.propertyName !== 'transform') return;
+                finish();
+            };
+
+            const fallbackTimer = setTimeout(finish, FLIP_FALLBACK_MS);
+            cardInnerEl.addEventListener('transitionend', handleTransition);
+        }
+
+        // --- MANUAL SEARCH ---
+        function filterManual() {
+            const term = document.getElementById('manual-search').value.toLowerCase();
+            const blocks = document.querySelectorAll('.manual-block');
+            
+            blocks.forEach(block => {
+                const text = block.innerText.toLowerCase();
+                if (text.includes(term)) {
+                    block.classList.remove('hidden');
+                    // Highlight logic could go here but simple hide/show is faster for study
+                } else {
+                    block.classList.add('hidden');
+                }
+            });
+        }
+
+        // --- SUDDEN DEATH LOGIC ---
+        function startSuddenDeath() {
+            document.getElementById('death-intro').classList.add('hidden');
+            document.getElementById('death-result').classList.add('hidden');
+            document.getElementById('death-game').classList.remove('hidden');
+            
+            // Get 5 random questions
+            deathQuestions = [...quizData].sort(() => Math.random() - 0.5).slice(0, 5);
+            deathIndex = 0;
+            loadDeathQuestion();
+        }
+
+        function loadDeathQuestion() {
+            if (deathIndex >= 5) {
+                endDeathGame(true);
+                return;
+            }
+
+            const q = deathQuestions[deathIndex];
+            document.getElementById('dq-current').innerText = deathIndex + 1;
+            document.getElementById('dq-text').innerText = q.q;
+            
+            const optsContainer = document.getElementById('dq-options');
+            optsContainer.innerHTML = '';
+            
+            q.opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 bg-gray-700 hover:bg-gray-600 rounded-lg border border-gray-600 font-medium text-gray-200 transition";
+                btn.innerText = opt;
+                btn.onclick = () => checkDeathAnswer(idx, q.a);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function checkDeathAnswer(selected, correct) {
+            if (selected === correct) {
+                deathIndex++;
+                loadDeathQuestion();
+            } else {
+                endDeathGame(false);
+            }
+        }
+
+        function endDeathGame(win) {
+            document.getElementById('death-game').classList.add('hidden');
+            const resDiv = document.getElementById('death-result');
+            resDiv.classList.remove('hidden');
+            
+            const icon = document.getElementById('death-icon');
+            const title = document.getElementById('death-title');
+            const msg = document.getElementById('death-msg');
+
+            if (win) {
+                icon.innerHTML = '<i class="fas fa-medal text-yellow-500 animate-bounce"></i>';
+                title.innerText = "Sobreviveu!";
+                title.className = "text-3xl font-bold text-yellow-500 mb-2";
+                msg.innerText = "Você passou ileso pelas 5 questões fatais. Está pronto.";
+            } else {
+                icon.innerHTML = '<i class="fas fa-skull text-red-600 animate-pulse"></i>';
+                title.innerText = "DQ - Desclassificado";
+                title.className = "text-3xl font-bold text-red-600 mb-2";
+                msg.innerText = "Um erro basta para perder a luta. Volte aos estudos.";
+            }
+        }
+
+        // --- TABS ---
+        function switchTab(tab) {
+            // Reset Styles
+            ['btn-manual', 'btn-flashcards', 'btn-death'].forEach(id => {
+                const btn = document.getElementById(id);
+                // Reset to default style (simplified logic for clarity)
+                if(id === 'btn-death') {
+                    btn.className = "px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-red-900 text-red-100 hover:bg-red-800";
+                } else {
+                     btn.className = "px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-gray-700 text-gray-300 hover:text-white";
+                }
+            });
+
+            // Hide Sections
+            ['manual-section', 'flashcards-section', 'death-section'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+
+            // Activate Target
+            if (tab === 'manual') {
+                document.getElementById('manual-section').classList.remove('hidden');
+                document.getElementById('btn-manual').className = "px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-blue-600 text-white shadow-lg";
+            } else if (tab === 'flashcards') {
+                document.getElementById('flashcards-section').classList.remove('hidden');
+                document.getElementById('btn-flashcards').className = "px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-yellow-600 text-white shadow-lg mx-1";
+            } else if (tab === 'death') {
+                document.getElementById('death-section').classList.remove('hidden');
+                document.getElementById('btn-death').className = "px-4 py-1.5 rounded text-xs font-bold transition-all uppercase tracking-wide bg-red-600 text-white shadow-lg";
+            }
+        }
+
+        // Init
+        switchTab('flashcards'); // Start on Flashcards for urgency
+        resetCards(); // Initialize deck
+
+    </script>
+</body>
+</html>
